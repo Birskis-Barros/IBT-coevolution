@@ -3,24 +3,45 @@
 getwd()
 setwd("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Data/pollination/")
 
-ind_effects <- matrix(NA, nrow= 147, ncol=5) #row number = number of files in the folder 
+ind_effects <- matrix(NA, nrow= 145, ncol=9) #row number = number of files in the folder 
 #col number = relate to the subsets of the network. First colum would be the pool, 
 #the second colum a subset of 80%, 3rd = 60%, 4th=40%, 5th=20%. 
+col = seq(1.0,0.2,-0.1)
+maxcounter = 500
+def = c(1,0,0,1)
+def = matrix(def,2,2)
+total = list(NA)
 
-for (t in 1:147)
+for(r in 1:20){
+for (u in 2:length(col)){ 
+for (t in 1:145){
   filename <- paste("network_",t,".csv", sep="")
   network = read.csv(filename, header = F)
   network = ifelse(network!=0,1,0) 
   
   ##Including IBT = subset of network
-  # nova = network
-  # nova.b = round(0.2*dim(nova)[1])
-  # nova.c = round(0.2*dim(nova)[2])
-  # nova.d = sort(sample(1:dim(nova)[1], nova.b))
-  # nova.e = sort(sample(1:dim(nova)[2], nova.c))
-  # network = nova[nova.d,nova.e]
-  # network <- network[ ,which(colSums(network) > 0)] #nao entendi pq eu tinha feito isso.
-  # network <- network[which(rowSums(network) > 0), ]
+  teste = FALSE
+  counter = 0 
+  while(teste==FALSE){
+  nova = network
+  nova.b = round(col[u]*dim(nova)[1])
+  nova.c = round(col[u]*dim(nova)[2])
+  nova.d = sort(sample(1:dim(nova)[1], nova.b))
+  nova.e = sort(sample(1:dim(nova)[2], nova.c))
+  network = nova[nova.d,nova.e]
+  network <- as.matrix(network)
+  sums = sum(network)
+  network <- network[ ,which(colSums(network) > 0)] #nao entendi pq eu tinha feito isso.
+  network <- as.matrix(network)
+  network <- network[which(rowSums(network) > 0), ]
+  network <- as.matrix(network)
+  teste = (sums != 0)
+  counter = counter + 1
+  if (counter > maxcounter) {
+    network = def
+    break
+  }
+  }
 
 ## Parameters 
 Splants = nrow(network) #number of plants
@@ -94,7 +115,10 @@ T= A%*%B
 ##Indirect effect
  diag(T) = 0
  teste = (1-network)*T
- ind_effects[t,1] = sum(teste)/sum(T) # need to change the colum accordingly to the subset (pool, 80%, 60%, 40%, 20%)
+ ind_effects[t,u] = sum(teste)/sum(T) 
+ total[[r]] = ind_effects
+} 
+}
 }
 
 
