@@ -1,6 +1,6 @@
 cd("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Data/pollination/")
 
-using csv
+using CSV
 using StatsBase
 
 ind_effects = Matrix{Float64}(undef, 145, 9); #row number = number of files in the folder
@@ -22,17 +22,26 @@ for u=1:length(col)
 
 ## Picking a subset of the network
     teste = false
+    counter = 0
     while teste == false
-    new = network
+    new = network;
     newb = Int(round(col[u]*size(new)[1]));
     newc = Int(round(col[u]*size(new)[2]));
     newd = sample(1:size(new)[1], newb, replace = false, ordered = true);
     newe = sample(1:size(new)[2], newc, replace= false, ordered = true);
     network = new[newd,newe];
     network = convert(Matrix,network);
-    sums = sum(network); 
-
-
+    sums = sum(network);
+    nonzerocols = findall(!iszero,vec(sum(network,dims=1)))
+    network[:,nonzerocols]
+    nonzerorows = findall(!iszero,vec(sum(network,dims=2)))
+    network[nonzerorows,:]
+    teste = sums != 0
+    counter = counter + 1
+      if counter > maxcounter
+        network = def
+        break
+      end
     end
 
 

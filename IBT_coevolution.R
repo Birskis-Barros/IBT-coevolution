@@ -31,9 +31,9 @@ for (t in 1:145){
   network = nova[nova.d,nova.e]
   network <- as.matrix(network)
   sums = sum(network)
-  network <- network[ ,which(colSums(network) > 0)] #nao entendi pq eu tinha feito isso.
+  network <- network[ ,which(colSums(network) > 0)] #retirando as colunas sem nenhuma interação
   network <- as.matrix(network)
-  network <- network[which(rowSums(network) > 0), ]
+  network <- network[which(rowSums(network) > 0), ] # retirando as linhas sem nenhuma interação
   network <- as.matrix(network)
   teste = (sums != 0)
   counter = counter + 1
