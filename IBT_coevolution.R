@@ -51,6 +51,8 @@ phi = 0.25 #heritability
 mi = 0.4 #strength of biotic selection
 alfa = 0.2
 tmax = 100
+M <- rep(mi, n_S)
+PHI <- rep(phi, n_S)
 
 #Changing labels
 rownames(network) <- paste("P", 1:Splants, set="")
@@ -66,11 +68,6 @@ b = cbind(t(network), zero_polinator)
 colnames(b) = c(1:ncol(b))
 rownames(b) = c(1:nrow(b))
 network <- rbind(a,b)
-
-
-##Creating the matrices
-M <- rep(mi, n_S)
-PHI <- rep(phi, n_S)
 
 #Environmental Optima
 THETA <- runif(n_S, min=0, max=1)
@@ -98,7 +95,7 @@ Q <- Q*M
 Q_z <- Q*z_dif
 mut <- apply(Q_z,1,sum) #normalizing
 
-##Calculating the environemntal selection dynamic
+##Calculating the environmental selection dynamic
 env <- (1-M)*(THETA-z)
 
 ##Evolutionary dynamics (Coevolution+Environmental)
@@ -108,7 +105,7 @@ z_matrix[i+1,] <- z + PHI*(mut + env)
 
 ##Calculating the indirect effects
 I = diag(1,dim(Q)[1],dim(Q)[2])
-A = solve(I-Q)
+A = solve(I-Q) #the inverse matrix of (I-Q)
 B = diag(1-mi,dim(Q)[1],dim(Q)[2])
 T= A%*%B
 
