@@ -12,8 +12,8 @@ def = c(1,0,0,1)
 def = matrix(def,2,2)
 total = list(NA)
 
-for(r in 1:20){
-for (u in 2:length(col)){
+for(r in 1:10){
+for (u in 1:length(col)){
 for (t in 1:145){
   filename <- paste("network_",t,".csv", sep="")
   network = read.csv(filename, header = F)
