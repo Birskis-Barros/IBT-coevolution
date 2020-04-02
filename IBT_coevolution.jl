@@ -12,8 +12,8 @@ col = [0.2:0.1:1;];
 col = sort!(col, rev=true);
 maxcounter = 500;
 def = [1 0; 0 1];
-reps = 20; #number of repetitions
-ind_effects = Array{Float64}(undef, reps, length(col), 145); # how to create a list of matrix and then fill it?
+reps = 10; #number of repetitions
+ind_effects = zeros( reps, 145, length(col)); # how to create a list of matrix and then fill it?
 
 for t=1:145
 filename = string("network_",t,".csv");
@@ -102,7 +102,7 @@ for u=1:length(col)
     ##Calculating the indirect effects
     I = zeros(Int8,size(Q)[1], size(Q)[2]);
     I[diagind(I)].=1;
-    A = pinv(I-Q); #the inverse matrix of (I-Q)
+    A = inv(I .-Q); #the inverse matrix of (I-Q)
     B = zeros(Float64, size(Q)[1], size(Q)[2]);
     B[diagind(B)].= 1-mi;
     T = A*B;
@@ -110,8 +110,10 @@ for u=1:length(col)
     ##Indirect effect
     T[diagind(T)].= 0;
     comp = (1 .- new_network) .* T;
-    #ind_effects[t,u] = sum(teste)/sum(T)
-    ind_effects[r,u,t] = sum(comp)/sum(T);
+    #ind_effects[t,u] = sum(comp)/sum(T);
+    ind_effects[r,t,u] = sum(comp)/sum(T);
     end
   end
 end
+
+ #ifelse.(isnan.(a), 0, a)
