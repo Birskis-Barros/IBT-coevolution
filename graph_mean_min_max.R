@@ -30,7 +30,7 @@ result = as.data.frame(result)
 colnames(result) = c("mean", "min", "max")
 result$distance = c("pool", "90", "80", "70", "60", "50", "40", "30", "20")
 
-ggsave(file=sprintf("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/teste/network_%s.pdf", j),
+ggsave(file=sprintf("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/mean_indeffects_networks/network_%s.pdf", j),
        width = 6, height = 8,
        plot = last_plot())
        

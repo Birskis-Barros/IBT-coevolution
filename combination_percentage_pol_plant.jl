@@ -10,18 +10,22 @@ using LinearAlgebra
 
 col = [0.2:0.1:1;];
 col = sort!(col, rev=true);
+tamanho = size(col)[1]
 maxcounter = 500;
 def = [1 0; 0 1];
 reps = 10; #number of repetitions
 ind_effects = zeros( reps, 145, length(col)); # how to create a list of matrix and then fill it?
+heat_array = zeros(tamanho, tamanho);
 
-for t=1:145
+#for t=124:145
+t = 1 #Escolher uma network 
 filename = string("network_",t,".csv");
 network_full = CSV.read(filename, header=false);
 network_full = convert(Array,network_full);
 network_full[network_full.>1] .= 1 #changing to a 0 and 1 matrix
-for r=1:reps
+#for r=1:reps
 for u=1:length(col)
+for j=1:length(col)
 
     ## Picking a subset of the network (mantaining the same pronportion betweemn plants and pollinators )
     global network=copy(network_full);
@@ -29,7 +33,7 @@ for u=1:length(col)
       while teste == false
         new = copy(network_full);
         newb = Int(round(col[u]*size(new)[1]));
-        newc = Int(round(col[u]*size(new)[2]));
+        newc = Int(round(col[j]*size(new)[2]));
         newd = sample(1:size(new)[1], newb, replace = false, ordered = true);
         newe = sample(1:size(new)[2], newc, replace= false, ordered = true);
         global network = new[newd,newe];
@@ -48,33 +52,32 @@ for u=1:length(col)
     end
 
 
-    # for u=1:length(col)
-    #
-    #     ## Picking a subset of the network (choosing the % among all species)
-    #     global network=copy(network_full);
-    #     let counter = 0, teste = false
-    #       while teste == false
-    #         new = copy(network_full);
-    #         total_species = [1:1:(size(new)[1] + size(new)[2]);];
-    #         total_number = Int(round(col[u]*size(total_species)[1]));
-    #         newb = sample(1:size(total_species)[1], total_number, replace = false, ordered = true);
-    #         newc = findall(x-> x<=size(new)[1],newb);
-    #         newd = findall(x-> x>size(new)[1], newb)
-    #         newe = newd .-(size(new)[1])
-    #         global network = new[newc,newe];
-    #         sums = sum(network);
-    #         nonzerocols = findall(!iszero,vec(sum(network,dims=1)));
-    #         global network = network[:,nonzerocols];
-    #         nonzerorows = findall(!iszero,vec(sum(network,dims=2)));
-    #         global network = network[nonzerorows,:];
-    #         teste = sums != 0
-    #         counter = counter + 1
-    #           if counter > maxcounter
-    #             network = copy(def)
-    #             break
-    #           end
-    #       end
-    #     end
+
+        # ## Picking a subset of the network (choosing the % among all species)
+        # global network=copy(network_full);
+        # let counter = 0, teste = false
+        #   while teste == false
+        #     new = copy(network_full);
+        #     total_species = [1:1:(size(new)[1] + size(new)[2]);];
+        #     total_number = Int(round(col[u]*size(total_species)[1]));
+        #     newb = sample(1:size(total_species)[1], total_number, replace = false, ordered = true);
+        #     newc = newb[findall(x-> x<=size(new)[1],newb),];
+        #     newd = newb[findall(x-> x > size(new)[1], newb),];
+        #     newe = newd .-(size(new)[1])
+        #     global network = new[newc,newe];
+        #     sums = sum(network);
+        #     nonzerocols = findall(!iszero,vec(sum(network,dims=1)));
+        #     global network = network[:,nonzerocols];
+        #     nonzerorows = findall(!iszero,vec(sum(network,dims=2)));
+        #     global network = network[nonzerorows,:];
+        #     teste = sums != 0
+        #     counter = counter + 1
+        #       if counter > maxcounter
+        #         network = copy(def)
+        #         break
+        #       end
+        #   end
+        # end
 
     ## Paramenters
     Splants = size(network)[1]; #number of plants
@@ -140,9 +143,9 @@ for u=1:length(col)
     T[diagind(T)].= 0;
     comp = (1 .- new_network) .* T;
     #ind_effects[t,u] = sum(comp)/sum(T);
-    ind_effects[r,t,u] = sum(comp)/sum(T);
+    #ind_effects[r,t,u] = sum(comp)/sum(T);
+    heat_array[u,j] = sum(comp)/sum(T);
     end
   end
-end
-
- #ifelse.(isnan.(a), 0, a)
+#end
+#end

@@ -1,5 +1,6 @@
 include ("$(homedir())/Dropbox/PhD/IBT_coevolution/Codes/IBT-coevolution/IBT_coevolution.jl")
 
+using RCall
 ## Chamando o output do codigo IBT_coevolution, que eh "ind_effects"
 #a partir dai, vou rodar pra cada rede um grafico com a media, max e min das "reps" simulacoes que eu rodei.
 
@@ -15,9 +16,9 @@ for j=1:145
   end
 
 R"""
-medias = as.data.frame(($(Array(medias2))))
-min = as.data.frame(($(Array(minim2))))
-max = as.data.frame(($(Array(maxim2))))
+medias = as.data.frame(($(Array(medias))))
+min = as.data.frame(($(Array(minim))))
+max = as.data.frame(($(Array(maxim))))
 
 result = cbind(t(medias),t(min))
 result = cbind(result, t(max))
@@ -25,7 +26,7 @@ result = as.data.frame(result)
 colnames(result) = c("mean", "min", "max")
 result$distance = c("pool", "90", "80", "70", "60", "50", "40", "30", "20")
 
-ggsave(file=sprintf("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/mean_indeffects_networks/network_%s.pdf", ($(Int(j)))),
+ggsave(file=sprintf("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/new/network_%s.pdf", ($(Int(j)))),
        width = 6, height = 8,
        plot = last_plot())
 
