@@ -19,7 +19,7 @@ for t=1:145
 filename = string("network_",t,".csv");
 network_full = CSV.read(filename, header=false);
 network_full = convert(Array,network_full);
-network_full[network_full.>1] .= 1 #changing to a 0 and 1 matrix
+network_full[network_full.>1] .= 1; #changing to a 0 and 1 matrix
 for r=1:reps
 for u=1:length(col)
 

@@ -8,14 +8,12 @@ using RCall
 
 ####### The dynamic on the mainland
 
-maxcounter = 500;
-ind_effects = zeros( reps, 145, length(col));
+t = 24; #starting the dynamic just for one network
 
-t = 1
 filename = string("network_",t,".csv");
 network_full = CSV.read(filename, header=false);
 network_full = convert(Array,network_full);
-network_full[network_full.>1] .= 1 #changing to a 0 and 1 matrix
+network_full[network_full.>1] .= 1; #changing to a 0 and 1 matrix
 
 ## Paramenters
 Splants = size(network_full)[1]; #number of plants
@@ -69,23 +67,28 @@ global Q = Array{Float64}(undef, 0);
     z_matrix[i+1,:] = z + PHI.*(mut + env);
     end
 
+    z_conv_mainland = z_matrix[tmax,:]; # I just have to keep the values of converged traits
+
 ###### The Dynamic in the Island
 
 ## Defining colonization rate
 col_rate = 0.5;
 
 ## Randomly choosing 2 plant species
-
 start_plants = sample(1:Splants,2);
-pollinator1 = sample(findall(x->x>0, network_full[start_plants[1],:]),1)
-pollinator2 = sample(findall(x->x>0, network_full[start_plants[2],:]),1)
-start_pollinators = [pollinator1; pollinator2]
-start_network = network_full[start_plants, start_pollinators] #a new network with the chosen species
+
+## Randomly choosing 2 pollinators, one for each plant.
+pollinator1 = sample(findall(x->x>0, network_full[start_plants[1],:]),1);
+pollinator2 = sample(findall(x->x>0, network_full[start_plants[2],:]),1);
+start_pollinators = [pollinator1; pollinator2];
+
+## The first network to colonize the island:
+start_network = network_full[start_plants, start_pollinators];
 
 ##Grabbing the trait of those species in the equilibrium (mainland)
-p = start_pollinators .+ Splants
-p_total = sort([start_plants; p])
-z_inital_island = z_matrix[100,p_total]
+p = Splants .+ start_pollinators;
+p_total = [start_plants; p];
+z_initial_island = z_matrix[100,p_total];
 
 ## Square matrix for the initial community
 ini_zero_plant = zeros(2, 2);
@@ -109,7 +112,7 @@ ini_z_matrix = zeros(tmax, size(ini_new_network)[1]);
 ini_z_matrix[1,:] = ini_z;
 
 global ini_Q = Array{Float64}(undef, 0);
-    for i = 1:(tmax-1)
+    #for i = 1:(tmax-1)
     ini_z = ini_z_matrix[i,:];
     ## Calculating trait-matching
     ini_z_dif = (ini_new_network.*ini_z)' -  ini_new_network.*ini_z;
@@ -130,4 +133,4 @@ global ini_Q = Array{Float64}(undef, 0);
 
     ##Evolutionary dynamics (Coevolution+Environmental)
     ini_z_matrix[i+1,:] = ini_z + ini_PHI.*(ini_mut + ini_env);
-    end
+    #end
