@@ -9,6 +9,9 @@ using RCall
 ####### The dynamic on the mainland ###########
 
 t = 24; #starting the dynamic just for one network
+ext_size = 0.2; #baseline extinction rate
+col_rate = 0.5; ## Defining colonization rate
+
 
 filename = string("network_",t,".csv");
 network_full = CSV.read(filename, header=false);
@@ -50,7 +53,7 @@ global Q = Array{Float64}(undef, 0);
     z_dif = (new_network.*z)' -  new_network.*z;
 
     ##Calculating matrix Q
-    global Q = new_network .* (exp(-alfa.*(z_dif.^2)));
+    global Q = new_network .* (exp.(-alfa.*(z_dif.^2)));
     global Q = Q./sum(Q,dims=2);
 
     ##Multplying by the strength of selection
@@ -72,9 +75,6 @@ n_time = 100
 z_result = zeros(n_S, n_time);
 z_result[:,1] = z_matrix[tmax,:]; # The first colum is the trait value of species in the mainland
 
-
-## Defining colonization rate
-col_rate = 0.5;
 
 ## Randomly choosing 2 plant species
 start_plants = sample(1:Splants,2);
@@ -120,7 +120,7 @@ global ini_Q = Array{Float64}(undef, 0);
     ini_z_dif = (ini_new_network.*ini_z)' -  ini_new_network.*ini_z;
 
     ##Calculating matrix Q
-    global ini_Q = ini_new_network .* (exp(-alfa.*(ini_z_dif.^2)));
+    global ini_Q = ini_new_network .* (exp.(-alfa.*(ini_z_dif.^2)));
     global ini_Q = ini_Q./sum(ini_Q,dims=2);
 
     ##Multplying by the strength of selection
@@ -146,7 +146,7 @@ sp_ab = setdiff([sp_a;sp_b], start_plants) #possible plants to colonize
 
 sp_c = findall(x->x>0, network_full[start_plants[1],:]);
 sp_d = findall(x->x>0, network_full[start_plants[2],:]);
-sp_cd =   Splants .+ setdiff([c;d],start_pollinators); # possible pollinators to colonize
+sp_cd =   Splants .+ setdiff([sp_c;sp_d],start_pollinators); # possible pollinators to colonize
 
 sp_colonizer = sample([sp_ab;sp_cd],1)[1]; # choosing one sp from all the possible new colonizers
 
@@ -171,3 +171,73 @@ new_b = hcat(colonizer_network', new_zero_pollinator);
 new_colonizer_network = vcat(new_a,new_b);
 
 ####### Coevolutionary dynamic
+
+new_theta = ini_THETA;
+new_theta = [new_theta; rand(Uniform(0,1),1)]; #including a new Optima for the new species
+
+new_M = repeat([mi],outer= size(new_colonizer_network)[1]);
+new_PHI = repeat([phi], outer= size(new_colonizer_network)[1]);
+
+#definir o z do primeito time step + o z da nova especie que colonizou
+
+new_species = [p_total; sp_colonizer];
+new_z = [z_result[p_total,2]; z_newcolonizer];
+
+
+global new_Q = Array{Float64}(undef, 0);
+    #for i = 1:(tmax-1)
+    #ini_z = ini_z_matrix[i,:];
+    ## Calculating trait-matching
+    new_z_dif = (new_colonizer_network.*new_z)' -  new_colonizer_network.*new_z;
+
+    ##Calculating matrix Q
+    global new_Q = new_colonizer_network.* (exp.(-alfa*(new_z_dif.^2)));
+    global new_Q = new_Q./sum(new_Q,dims=2);
+
+    ##Multplying by the strength of selection
+    global new_Q = new_Q.*new_M;
+
+    ##Multiplying by the z diff
+    new_Q_z = new_Q .* new_z_dif;
+    new_mut = vec(sum(new_Q_z,dims=2)); #normalizing
+
+    ##Calculating the environmental selection dynamic
+    new_env = (1 .-new_M).*(new_theta-new_z);
+
+    ##Evolutionary dynamics (Coevolution+Environmental)
+    z_result[new_species,3] = new_z + new_PHI.*(new_mut + new_env);
+
+####### Extinctions
+    #Essa foi a primeira forma que eu calculei a prob de extincao, mas não funciona.. eu considerei apenas todas as interações possiveis, não olhei pra cada especie.
+    # maximumprob = 0.5 #pra chance de extincao da esp com o maior mismatch nao ser 1, multiplicamos por um parametro que limita esse maximum
+    # prob_ext = maximumprob.*(vec(exp.(alfa.*(new_z_dif.^2))) ./ maximum(vec(exp.(alfa.*(new_z_dif.^2)))));
+    # trait_mat = vec(abs.(new_z_dif));
+    # #plot($(Array(prob_ext))~$(Array(trait_mat))) #checking the curve
+
+    ## Extinction due to trait matching
+    abs_new_z_dif = abs.(new_z_dif) #all positives
+    media_species = zeros(size(abs_new_z_dif)[1])
+    for i=1:size(abs_new_z_dif)[1]
+    media_species[i] = mean(abs_new_z_dif[i,findall(!iszero,abs_new_z_dif[i,:])]) #calculating the mean trait matching for each species
+    end
+
+    prob_ext = maximumprob = 0.5
+    prob_ext = maximumprob.*(vec(exp.(alfa.*(media_species.^2))) ./ maximum(vec(exp.(alfa.*(media_species.^2))))); #maior a diferenca media de trait matching, maior a chance de ser extinta
+
+    pass_test1 = zeros(size(new_z_dif)[1]) .+1;
+    roll_dice_1 = rand(Uniform(0,1),size(new_z_dif)[1]);
+    pass_test1 = pass_test1 .* (roll_dice_1 .> prob_ext); #possible species to get extict due to trait matching
+
+    ## Extinction due to baseline extinction rate related to island size
+
+    pass_test2 = zeros(size(new_z_dif)[1]) .+1;
+    base_ext = repeat([ext_size], size(new_z_dif)[1])
+    roll_dice_2 = rand(Uniform(0,1),size(new_z_dif)[1]);
+    pass_test2 = pass_test2 .* (roll_dice_2 .> base_ext);
+
+    ## Among all possible species, just one will get extinct
+    final_pass_test = pass_test1 .+ pass_test2
+    sp = final_pass_test .> 0
+    ext_sp = rand(findall(x->x>0,sp), 1)
+
+    #Agora falta checar extinções secundárias (cascata trofica)

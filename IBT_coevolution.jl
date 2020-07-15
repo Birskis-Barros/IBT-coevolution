@@ -111,7 +111,7 @@ for u=1:length(col)
       z_dif = (new_network.*z)' -  new_network.*z;
 
       ##Calculating matrix Q
-      global Q = new_network .* (exp(-alfa.*(z_dif.^2)));
+      global Q = new_network .* (exp.(-alfa.*(z_dif.^2)));
       global Q = Q./sum(Q,dims=2);
 
       ##Multplying by the strength of selection
