@@ -6,26 +6,27 @@ using Distributions
 using LinearAlgebra
 using RCall
 
+include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/casc_ext.jl")
+
 ####### The dynamic on the mainland ###########
 
-t = 24; #starting the dynamic just for one network
+t = 4; #starting the dynamic just for one network
 ext_size = 0.2; #baseline extinction rate
-col_rate = 0.5; ## Defining colonization rate
-
+col_rate = 0.5; ## defining colonization rate
+phi = 0.25; #heritability
+mi = 0.4; #strength of biotic selection
+alfa = 0.2;
+tmax = 100;
 
 filename = string("network_",t,".csv");
 network_full = CSV.read(filename, header=false);
 network_full = convert(Array,network_full);
 network_full[network_full.>1] .= 1; #changing to a 0 and 1 matrix
 
-## Paramenters
+## Network of Paramenters
 Splants = size(network_full)[1]; #number of plants
 Spollinator = size(network_full)[2]; #number of pollinator
 n_S = Splants + Spollinator;
-phi = 0.25; #heritability
-mi = 0.4; #strength of biotic selection
-alfa = 0.2;
-tmax = 100;
 M = repeat([mi],outer= n_S);
 PHI = repeat([phi], outer= n_S);
 
@@ -34,9 +35,9 @@ zero_plant = zeros(Splants, Splants);
 zero_pollinator = zeros(Spollinator, Spollinator);
 a = hcat(zero_plant, network_full);
 b = hcat(network_full', zero_pollinator);
-new_network = vcat(a,b);
+square_network = vcat(a,b);
 
-##Enviromental Optima
+##Enviromental Optima Regional Pool
 THETA = rand(Uniform(0,1), n_S);
 
 #Initial trait value for each sp
@@ -50,10 +51,10 @@ global Q = Array{Float64}(undef, 0);
     for i = 1:(tmax-1)
     z = z_matrix[i,:];
     ## Calculating trait-matching
-    z_dif = (new_network.*z)' -  new_network.*z;
+    z_dif = (square_network.*z)' -  square_network.*z;
 
     ##Calculating matrix Q
-    global Q = new_network .* (exp.(-alfa.*(z_dif.^2)));
+    global Q = square_network .* (exp.(-alfa.*(z_dif.^2)));
     global Q = Q./sum(Q,dims=2);
 
     ##Multplying by the strength of selection
@@ -71,15 +72,15 @@ global Q = Array{Float64}(undef, 0);
     end
 
 ###### The Dynamic in the Island #########
-n_time = 100
+n_time = 100;
 z_result = zeros(n_S, n_time);
 z_result[:,1] = z_matrix[tmax,:]; # The first colum is the trait value of species in the mainland
 
 
-## Randomly choosing 2 plant species
+## Randomly choosing 2 plant species to first colonize the island
 start_plants = sample(1:Splants,2);
 
-## Randomly choosing 2 pollinators, one for each plant.
+## Randomly choosing 2 pollinators to first colonize the island, one for each plant.
 pollinator1 = sample(findall(x->x>0, network_full[start_plants[1],:]),1);
 pollinator2 = sample(findall(x->x>0, network_full[start_plants[2],:]),1);
 start_pollinators = [pollinator1; pollinator2];
@@ -87,7 +88,7 @@ start_pollinators = [pollinator1; pollinator2];
 ## The first network to colonize the island:
 start_network = network_full[start_plants, start_pollinators];
 
-##Grabbing the trait of those species in the equilibrium (mainland)
+##Grabbing the trait of those species in the equilibrium (mainland) #as primeiras especies são plantas
 p = Splants .+ start_pollinators;
 p_total = [start_plants; p]; #vou usar isso pra preencher o z_result[,:2]
 z_initial_island = z_matrix[100,p_total];
@@ -97,30 +98,30 @@ ini_zero_plant = zeros(2, 2);
 ini_zero_pollinator = zeros(2, 2);
 a = hcat(ini_zero_plant, start_network);
 b = hcat(start_network', ini_zero_pollinator);
-ini_new_network = vcat(a,b);
+ini_square_network = vcat(a,b);
 
 ### Coevolutionary Dynamic for the Island with the initial species
 
 ##Enviromental Optima
-ini_THETA = rand(Uniform(0,1), size(ini_new_network)[1]);
+ini_THETA = rand(Uniform(0,1), size(ini_square_network)[1]);
 
-ini_M = repeat([mi],outer= size(ini_new_network)[1]);
-ini_PHI = repeat([phi], outer= size(ini_new_network)[1]);
+ini_M = repeat([mi],outer= size(ini_square_network)[1]);
+ini_PHI = repeat([phi], outer= size(ini_square_network)[1]);
 
 #Initial trait value for each sp
 ini_z = copy(z_initial_island);
 
-#ini_z_matrix = zeros(tmax, size(ini_new_network)[1]);
+#ini_z_matrix = zeros(tmax, size(ini_square_network)[1]);
 #ini_z_matrix[1,:] = ini_z;
 
 global ini_Q = Array{Float64}(undef, 0);
     #for i = 1:(tmax-1)
     #ini_z = ini_z_matrix[i,:];
     ## Calculating trait-matching
-    ini_z_dif = (ini_new_network.*ini_z)' -  ini_new_network.*ini_z;
+    ini_z_dif = (ini_square_network.*ini_z)' -  ini_square_network.*ini_z;
 
     ##Calculating matrix Q
-    global ini_Q = ini_new_network .* (exp.(-alfa.*(ini_z_dif.^2)));
+    global ini_Q = ini_square_network .* (exp.(-alfa.*(ini_z_dif.^2)));
     global ini_Q = ini_Q./sum(ini_Q,dims=2);
 
     ##Multplying by the strength of selection
@@ -142,7 +143,7 @@ global ini_Q = Array{Float64}(undef, 0);
 
 sp_a = findall(x->x>0, network_full[:,start_pollinators[1]]);
 sp_b = findall(x->x>0, network_full[:, start_pollinators[2]]);
-sp_ab = setdiff([sp_a;sp_b], start_plants) #possible plants to colonize
+sp_ab = setdiff([sp_a;sp_b], start_plants); #possible plants to colonize
 
 sp_c = findall(x->x>0, network_full[start_plants[1],:]);
 sp_d = findall(x->x>0, network_full[start_plants[2],:]);
@@ -150,6 +151,7 @@ sp_cd =   Splants .+ setdiff([sp_c;sp_d],start_pollinators); # possible pollinat
 
 sp_colonizer = sample([sp_ab;sp_cd],1)[1]; # choosing one sp from all the possible new colonizers
 
+island_species = [new_plants,new_pollinators]
 z_newcolonizer = z_result[sp_colonizer,1]; #grabbing the z of the new colonizer (from mainland)
 
 #to know if it's a plant or a pollinator
@@ -168,15 +170,15 @@ new_zero_plant = zeros(size(colonizer_network)[1], size(colonizer_network)[1]);
 new_zero_pollinator = zeros(size(colonizer_network)[2], size(colonizer_network)[2]);
 new_a = hcat(new_zero_plant, colonizer_network);
 new_b = hcat(colonizer_network', new_zero_pollinator);
-new_colonizer_network = vcat(new_a,new_b);
+square_colonizer_network = vcat(new_a,new_b);
 
 ####### Coevolutionary dynamic
 
 new_theta = ini_THETA;
 new_theta = [new_theta; rand(Uniform(0,1),1)]; #including a new Optima for the new species
 
-new_M = repeat([mi],outer= size(new_colonizer_network)[1]);
-new_PHI = repeat([phi], outer= size(new_colonizer_network)[1]);
+new_M = repeat([mi],outer= size(square_colonizer_network)[1]);
+new_PHI = repeat([phi], outer= size(square_colonizer_network)[1]);
 
 #definir o z do primeito time step + o z da nova especie que colonizou
 
@@ -188,10 +190,10 @@ global new_Q = Array{Float64}(undef, 0);
     #for i = 1:(tmax-1)
     #ini_z = ini_z_matrix[i,:];
     ## Calculating trait-matching
-    new_z_dif = (new_colonizer_network.*new_z)' -  new_colonizer_network.*new_z;
+    new_z_dif = (square_colonizer_network.*new_z)' -  square_colonizer_network.*new_z;
 
     ##Calculating matrix Q
-    global new_Q = new_colonizer_network.* (exp.(-alfa*(new_z_dif.^2)));
+    global new_Q = square_colonizer_network.* (exp.(-alfa*(new_z_dif.^2)));
     global new_Q = new_Q./sum(new_Q,dims=2);
 
     ##Multplying by the strength of selection
@@ -215,7 +217,8 @@ global new_Q = Array{Float64}(undef, 0);
     # #plot($(Array(prob_ext))~$(Array(trait_mat))) #checking the curve
 
     ## Extinction due to trait matching
-    abs_new_z_dif = abs.(new_z_dif) #all positives
+    trait_mat = (square_colonizer_network.*z_result[new_species,3])' -  square_colonizer_network.*z_result[new_species,3];
+    abs_new_z_dif = abs.(trait_mat) #all positives
     media_species = zeros(size(abs_new_z_dif)[1])
     for i=1:size(abs_new_z_dif)[1]
     media_species[i] = mean(abs_new_z_dif[i,findall(!iszero,abs_new_z_dif[i,:])]) #calculating the mean trait matching for each species
@@ -224,20 +227,23 @@ global new_Q = Array{Float64}(undef, 0);
     prob_ext = maximumprob = 0.5
     prob_ext = maximumprob.*(vec(exp.(alfa.*(media_species.^2))) ./ maximum(vec(exp.(alfa.*(media_species.^2))))); #maior a diferenca media de trait matching, maior a chance de ser extinta
 
-    pass_test1 = zeros(size(new_z_dif)[1]) .+1;
-    roll_dice_1 = rand(Uniform(0,1),size(new_z_dif)[1]);
+    pass_test1 = zeros(size(trait_mat)[1]) .+1;
+    roll_dice_1 = rand(Uniform(0,1),size(trait_mat)[1]);
     pass_test1 = pass_test1 .* (roll_dice_1 .> prob_ext); #possible species to get extict due to trait matching
 
     ## Extinction due to baseline extinction rate related to island size
 
-    pass_test2 = zeros(size(new_z_dif)[1]) .+1;
-    base_ext = repeat([ext_size], size(new_z_dif)[1])
-    roll_dice_2 = rand(Uniform(0,1),size(new_z_dif)[1]);
+    pass_test2 = zeros(size(trait_mat)[1]) .+1;
+    base_ext = repeat([ext_size], size(trait_mat)[1])
+    roll_dice_2 = rand(Uniform(0,1),size(trait_mat)[1]);
     pass_test2 = pass_test2 .* (roll_dice_2 .> base_ext);
 
     ## Among all possible species, just one will get extinct
-    final_pass_test = pass_test1 .+ pass_test2
-    sp = final_pass_test .> 0
-    ext_sp = rand(findall(x->x>0,sp), 1)
+    final_pass_test = pass_test1 .+ pass_test2;
+    sp = final_pass_test .> 0;
+    pri_ext = rand(findall(x->x>0,sp), 1);
 
-    #Agora falta checar extinções secundárias (cascata trofica)
+
+
+    ### Defining cascade extinctions
+    total_ext_sp = cascade_ext_sp(square_colonizer_network, pri_ext) #[1] lista de sp extintas em cada time step; [2] matrix com as sp que sobraram (linhas e colunas zeradas das esp extintas)
