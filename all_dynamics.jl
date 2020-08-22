@@ -9,7 +9,8 @@ using DataFrames
 
 include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/coevolution_mainland.jl")
 include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/casc_ext.jl")
-
+include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/initial_island.jl")
+include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/first_ext.jl")
 
 m = 8; #chossing network from data folder
 
@@ -17,11 +18,11 @@ phi = 0.25; #heritability
 mi = 0.4; #strength of biotic selection
 alfa = 0.2; #parameter for the trait matching
 tmax = 100; #coevolutionary time step
-
 ext_size = 0.2; #baseline extinction rate
 col_rate = 0.8; ## defining colonization rate
+maximumprob = 0.5 ## maximum probability of extinction based on trait matching
 
-##network from mainland
+#### Empirical Network
 filename = string("network_",m,".csv");
 adj_network = CSV.read(filename, header=false);
 adj_network = convert(Array,adj_network);
@@ -29,136 +30,38 @@ adj_network[adj_network.>1] .= 1; #changing to a 0 and 1 matrix
 
 Splants = size(adj_network)[1]; #number of plants
 Spollinator = size(adj_network)[2]; #number of pollinator
-n_S = Splants + Spollinator;
+n_S = Splants + Spollinator; #total number of species
+
+##### The coevolutionary dynamic in the mainland
 
 mainland = coev_pool(adj_network,phi,alfa,tmax);
 
-###### The Dynamic in the Island #########
+###### The Dynamic in the Island
 
-n_time = 100; #number of time steps in the island dynamic
-
-z_result = zeros(n_S, n_time);
+z_result = zeros(n_S, tmax); #keeping the traits values of coevolutionary dynamics
 z_result[:,1] = mainland[tmax,:]; # The first colum is the trait value of species in the mainland
 
-## Randomly choosing 2 plant species to first colonize the island
-start_plants = sample(1:Splants,2, replace=false);
+# 1) First Colonization
 
-## Randomly choosing 2 pollinators to first colonize the island, one for each plant.
-global test_pollinators = 2
+start_plants = sample(1:Splants,2, replace=false); # Randomly choosing 2 plant species to first colonize the island
 
-while test_pollinators > 1
-    global pollinator1
-    global pollinator2
-     pollinator1 = sample(findall(x->x>0, adj_network[start_plants[1],:]),1);
-     pollinator2 = sample(findall(x->x>0, adj_network[start_plants[2],:]),1);
-    if pollinator1 == pollinator2
-        global test_pollinators = 2
-    else
-        global test_pollinators = 0
-    end
-end
+# 2) First Coevolutionary Process
+first_step = initial_island(tmax, adj_network, z_result, start_plants); #Coevolutionary dynamic of the first 4 species who colonized the island
 
-start_pollinators = [pollinator1; pollinator2];
+ini_sp_total = copy(first_step[1]); #4 first species to colonize the island
+square_colonizer_network = copy(first_step[2]); #new network in the island
+island_THETA = copy(first_step[3]); #keep the same theta for the species in the island
+z_result[ini_sp_total,2] = copy(first_step[4][ini_sp_total]); #result of the first coevolutinary step in the island
+total_island_species = copy(ini_sp_total);
 
-## The first network to colonize the island:
-first_island_network = zeros(size(adj_network)[1], size(adj_network)[2]); #keeping the same size as pool network because it is easier to track species
-first_island_network[start_plants[1],start_pollinators[1]] = 1;
-first_island_network[start_plants[2],start_pollinators[2]] = 1;
+# 3) Extinctions
+for a=2:25
 
-##Grabbing the trait of those species in the equilibrium (mainland) #as primeiras especies são plantas
-p = Splants .+ start_pollinators;
-ini_sp_total = [start_plants; p]; #vou usar isso pra preencher o z_result[,:2]
-island_z_initial = zeros(n_S);
-island_z_initial[ini_sp_total] = z_result[ini_sp_total,1];
+    ## First extinction = Due to trait matching or baseline
+    trait_mat = (square_colonizer_network.*z_result[:,a])' -  square_colonizer_network.*z_result[:,a]; #here is an "a"!!!!!!!!!!!!!!!
+    pri_ext = first_ext(trait_mat, maximumprob, total_island_species, alfa, ext_size) #primary extinction
 
-## Square matrix for the initial community
-ini_zero_plant = zeros(Splants, Splants);
-ini_zero_pollinator = zeros(Spollinator, Spollinator);
-a = hcat(ini_zero_plant, first_island_network);
-b = hcat(first_island_network', ini_zero_pollinator);
-square_first_island_network = vcat(a,b);
-
-### Coevolutionary Dynamic for the Island with the initial species
-
-##Enviromental Optima
-island_THETA = rand(Uniform(0,1), size(square_first_island_network)[1]); #already choosing theta for all species that can colonize the island
-
-ini_M = repeat([mi],outer= size(square_first_island_network)[1]);
-ini_PHI = repeat([phi], outer= size(square_first_island_network)[1]);
-
-#Initial trait value for each sp
-ini_z = copy(island_z_initial);
-
-#ini_pool_z_matrix = zeros(tmax, size(square_first_island_network)[1]);
-#ini_pool_z_matrix[1,:] = ini_z;
-
-global ini_Q = Array{Float64}(undef, 0);
-
-    ini_z_dif = (square_first_island_network.*ini_z)' -  square_first_island_network.*ini_z;
-
-    ##Calculating matrix Q
-    global ini_Q = square_first_island_network .* (exp.(-alfa.*(ini_z_dif.^2)));
-    global ini_Q = ini_Q./sum(ini_Q,dims=2);
-
-    ##Multplying by the strength of selection
-    global ini_Q = ini_Q.*ini_M;
-
-    ##Multiplying by the z diff
-    ini_Q_z = ini_Q .* ini_z_dif;
-    ini_mut = vec(sum(ini_Q_z,dims=2)); #normalizing
-
-    ##Calculating the environmental selection dynamic
-    ini_env = (1 .-ini_M).*(island_THETA-ini_z);
-
-    ##Evolutionary dynamics (Coevolution+Environmental)
-    z_final = ini_z + ini_PHI.*(ini_mut + ini_env);
-    z_result[ini_sp_total,2] = z_final[ini_sp_total];
-
-    square_colonizer_network = copy(square_first_island_network);
-    total_island_species = copy(ini_sp_total);
-####### Extinctions
-    #Essa foi a primeira forma que eu calculei a prob de extincao, mas não funciona.. eu considerei apenas todas as interações possiveis, não olhei pra cada especie.
-    # maximumprob = 0.5 #pra chance de extincao da esp com o maior mismatch nao ser 1, multiplicamos por um parametro que limita esse maximum
-    # prob_ext = maximumprob.*(vec(exp.(alfa.*(new_z_dif.^2))) ./ maximum(vec(exp.(alfa.*(new_z_dif.^2)))));
-    # trait_mat = vec(abs.(new_z_dif));
-    # #plot($(Array(prob_ext))~$(Array(trait_mat))) #checking the curve
-
-
-    for a=2:25
-    ## Extinction due to trait matching
-    trait_mat = (square_colonizer_network.*z_result[:,a])' -  square_colonizer_network.*z_result[:,a]; #!!!!!!!!!!!!!!!
-    abs_new_z_dif = abs.(trait_mat); #all positives
-    media_species = zeros(size(abs_new_z_dif)[1]);
-    for i=1:size(abs_new_z_dif)[1]
-    media_species[i] = mean(abs_new_z_dif[i,findall(!iszero,abs_new_z_dif[i,:])]) #calculating the mean trait matching for each species
-    end
-
-    maximumprob = 0.5
-    prob_ext = maximumprob.*(vec(exp.(alfa.*(media_species[findall(x->x>0,media_species)].^2))) ./ maximum(vec(exp.(alfa.*(media_species[findall(x->x>0,media_species)].^2))))); #maior a diferenca media de trait matching, maior a chance de ser extinta
-
-    pass_test1 = zeros(size(prob_ext)[1]) .+1;
-    roll_dice_1 = rand(Uniform(0,1),size(prob_ext)[1]);
-    pass_test1 = pass_test1 .* (roll_dice_1 .< prob_ext); #possible species to get extict due to trait matching
-
-    ## Extinction due to baseline extinction rate related to island size
-
-    pass_test2 = zeros(size(prob_ext)[1]) .+1;
-    base_ext = repeat([ext_size], size(prob_ext)[1]);
-    roll_dice_2 = rand(Uniform(0,1),size(prob_ext)[1]);
-    pass_test2 = pass_test2 .* (roll_dice_2 .< base_ext);
-
-    ## Among all possible species, just one will get extinct
-    final_pass_test = pass_test1 .+ pass_test2;
-    sp = final_pass_test .> 0;
-
-    if findall(x->x>0,sp) == []
-        global pri_ext = 0;
-    else
-        global pri_ext = total_island_species[rand(findall(x->x>0,sp), 1)];
-    end
-
-    ### Defining cascade extinctions
-
+    ## Defining cascade extinctions
     global total_ext_sp = Array{Array}(undef, 2)
 
     if pri_ext == 0
@@ -257,7 +160,7 @@ global ini_Q = Array{Float64}(undef, 0);
     if  dice_col > col_rate
         new_z[total_island_species] = z_result[total_island_species,a]
     else
-        new_z[total_island_species] = [z_result[setdiff(total_island_species, sp_colonizer),a]; z_newcolonizer]; # !!!!!!!!!!!!!!
+        new_z[total_island_species] = [z_result[setdiff(total_island_species, sp_colonizer),a]; z_newcolonizer]; #here is an "a"!!!!!!!!!!!!!!!
     end
 
     global new_Q = Array{Float64}(undef, 0);
@@ -282,7 +185,7 @@ global ini_Q = Array{Float64}(undef, 0);
 
         ##Evolutionary dynamics (Coevolution+Environmental)
         z_final = new_z + new_PHI.*(new_mut + new_env);
-        z_result[total_island_species,(a+1)] = z_final[total_island_species]; #!!!!!!!!!!!!!!
+        z_result[total_island_species,(a+1)] = z_final[total_island_species]; #here is an "a"!!!!!!!!!!!!!!!
 
         if z_result[total_island_species,(a+1)] == []
             break
