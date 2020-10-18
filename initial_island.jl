@@ -8,23 +8,25 @@ n_S = Splants + Spollinator;
 global test_pollinators = 2
 
 while test_pollinators > 1
-    global pollinator1
-    global pollinator2
-     pollinator1 = sample(findall(x->x>0, adj_network[start_plants[1],:]),1);
-     pollinator2 = sample(findall(x->x>0, adj_network[start_plants[2],:]),1);
-    if pollinator1 == pollinator2
+    global start_pollinators = Array{Array}(undef, size(start_plants)[1])
+    for i=1:length(start_plants)
+     start_pollinators[i] = sample(findall(x->x>0, adj_network[start_plants[i],:]),1);
+    end
+    if length(unique(start_pollinators)) <  length(start_plants)
         global test_pollinators = 2
     else
         global test_pollinators = 0
     end
 end
 
-start_pollinators = [pollinator1; pollinator2];
+
+global start_pollinators = map(i->i[1], start_pollinators)
 
 ## The first network to colonize the island:
 first_island_network = zeros(size(adj_network)[1], size(adj_network)[2]); #keeping the same size as pool network because it is easier to track species
-first_island_network[start_plants[1],start_pollinators[1]] = 1;
-first_island_network[start_plants[2],start_pollinators[2]] = 1;
+for i=1:size(start_plants)[1]
+first_island_network[start_plants[i],start_pollinators[i]] = 1;
+end
 
 ##Grabbing the trait of those species in the equilibrium (mainland) #as primeiras especies são plantas
 p = Splants .+ start_pollinators;
@@ -42,7 +44,19 @@ square_first_island_network = vcat(a,b);
 ### Coevolutionary Dynamic for the Island with the initial species
 
 ##Enviromental Optima
-island_THETA = rand(Uniform(0,1), size(square_first_island_network)[1]); #already choosing theta for all species that can colonize the island
+#island_THETA = rand(Uniform(0,1), size(square_first_island_network)[1]); #already choosing theta for all species that can colonize the island, but considering a total new value for the island
+# global test_theta = 2
+#
+# while test_theta > 1
+#     global island_THETA = THETA .+ rand(Uniform(-0.1,0.1),length(THETA)); #considering values similar to the mainland, but with a noise of +- 0.2
+#     if findall(x->x>=1, island_THETA) != [] && findall(x->x<=0, island_THETA) != []
+#         global test_theta = 2
+#     else
+#         global test_theta = 0
+#     end
+# end
+
+global island_THETA =  copy(THETA)
 
 ini_M = repeat([mi],outer= size(square_first_island_network)[1]);
 ini_PHI = repeat([phi], outer= size(square_first_island_network)[1]);

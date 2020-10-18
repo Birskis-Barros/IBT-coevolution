@@ -37,7 +37,7 @@ function coev_pool(adj_network,phi,alfa,tmax)
         for i = 1:(tmax-1)
         z = pool_z_matrix[i,:];
         ## Calculating trait-matching
-        z_dif = (square_adj_network.*z)' -  square_adj_network.*z;
+        global z_dif = (square_adj_network.*z)' -  square_adj_network.*z;
 
         ##Calculating matrix Q
         global Q = square_adj_network .* (exp.(-alfa.*(z_dif.^2)));
@@ -58,6 +58,8 @@ function coev_pool(adj_network,phi,alfa,tmax)
         end
 
     return (
-    pool_z_matrix
+    pool_z_matrix,
+    THETA,
+    z_dif
     )
 end

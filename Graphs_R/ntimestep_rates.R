@@ -1,9 +1,14 @@
-getwd()
-setwd("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/results/c_1.0")
+tab=seq(0.1,1,by=0.1)
+result = matrix(NA, ncol=10, nrow=100)
+result = as.data.frame(result)
+
+for (j in 1:length(tab)){
+
+name = paste("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/results/c_", tab[j], sep="")
+setwd(name)
 
 listcsv <- dir(pattern = "*.csv")
 ldf <- list()
-result_10= NA #chage name for each setwd (e.g., c_0.8 = result_08)
 
 for (k in 1:length(listcsv)){
   ldf[[k]] <- read.csv(listcsv[k])
@@ -11,7 +16,9 @@ for (k in 1:length(listcsv)){
 
 for (i in 1:length(listcsv)){
   a = apply(ldf[[i]],2,sum) 
-  result_10[i] = length(which(a>0))
+  result[i,j] = length(which(a>0))
+}
+
 }
 
 ########
@@ -19,8 +26,8 @@ for (i in 1:length(listcsv)){
 total = matrix(NA, nrow=1000, ncol=2)
 total = as.data.frame(total)
 total[,1] = rep(seq(0.1,1.0,0.1), each=100)
-total[,2] = c(result_01, result_02, result_03, result_04, result_05, result_06, 
-              result_07, result_08, result_09, result_10)
+total[,2] = c(resul[,1], result[,2], result[,3], result[,4], result[,5], result[,6], 
+              result[,7], result[,8], result[,9], result[,10])
 colnames(total) = c("ext_rate", "n_timestep")
 total$ext_rate = as.character(total$ext_rate)
 
