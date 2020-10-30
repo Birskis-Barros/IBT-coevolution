@@ -7,6 +7,7 @@ include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/first_ex
 include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/colonization.jl")
 include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/coev_island.jl")
 include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/all_dynamics.jl")
+include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/potential_colonizers.jl")
 
 using CSV
 using StatsBase
@@ -33,5 +34,5 @@ adj_network = convert(Array,adj_network);
 
 #each col is on timestep (column1 is the traits of species in the island, other columns are time steps)
 #species that aren't in the island at that time step are "zeros", if they are the number is their trait value at that timestep.
-#ncolumns = tmax 
+#ncolumns = tmax
 analy = assemblycoev(adj_network, phi, mi, alfa, tmax, ext_size, col_rate, maximumprob);
