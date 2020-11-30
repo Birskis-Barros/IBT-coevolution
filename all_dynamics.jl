@@ -1,6 +1,6 @@
 ### Function of the total dynamic, including coevolution in the mainland, colonization, coevolution, and extinction.
 
-function assemblycoev(adj_network, phi, mi, alfa, tmax, ext_size, col_rate, maximumprob)
+function assemblycoev(adj_network, phi, mi, alfa, events, ext_size, col_rate, maximumprob)
 
     global adj_network[adj_network.>1] .= 1; #changing to a 0 and 1 matrix
 
@@ -10,21 +10,21 @@ function assemblycoev(adj_network, phi, mi, alfa, tmax, ext_size, col_rate, maxi
 
     ##### The coevolutionary dynamic in the mainland
 
-    mainland = coev_pool(adj_network,phi,alfa,tmax);
+    mainland = coev_pool(adj_network,phi,alfa,events);
     global z_mainland = mainland[1];
     global THETA = mainland[2];
 
     ###### The Dynamic in the Island
 
-    global z_result = zeros(n_S, tmax); #keeping the traits values of coevolutionary dynamics +
-    global z_result[:,1] = z_mainland[tmax,:]; # The first colum is the trait value of species in the mainland +
+    global z_result = zeros(n_S, events); #keeping the traits values of coevolutionary dynamics +
+    global z_result[:,1] = z_mainland[events,:]; # The first colum is the trait value of species in the mainland +
 
     # 1) First Colonization
 
     global start_plants = sample(1:Splants,4, replace=false); # Randomly choosing 4 plant species to first colonize the island
 
     # 2) First Coevolutionary Process
-    first_step = initial_island(tmax, adj_network, z_result, start_plants); #Coevolutionary dynamic of the first 4 species who colonized the island
+    first_step = initial_island(events, adj_network, z_result, start_plants); #Coevolutionary dynamic of the first 4 species who colonized the island
 
     global ini_sp_total = copy(first_step[1]); #4 first species to colonize the island +
     global square_colonizer_network = copy(first_step[2]); #new network in the island +
@@ -33,7 +33,7 @@ function assemblycoev(adj_network, phi, mi, alfa, tmax, ext_size, col_rate, maxi
     global total_island_species = copy(ini_sp_total); #+
 
 
-        for a=2:(tmax-1)
+        for a=2:(events-1)
         # 3) Extinctions
 
             ## First extinction = Due to trait matching or baseline
@@ -136,7 +136,7 @@ function assemblycoev(adj_network, phi, mi, alfa, tmax, ext_size, col_rate, maxi
     return(
     #each col is on timestep (column1 is the traits of species in the island, other columns are time steps)
     #species that aren't in the island at that time step are "zeros", if they are the number is their trait value at that timestep.
-    #ncolumns = tmax 
+    #ncolumns = events
       z_result
     )
 end

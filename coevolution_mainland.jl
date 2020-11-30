@@ -1,13 +1,6 @@
 ####### The dynamic on the mainland ###########
 
-##Parameters
-# m = 8; chossing network from data folder
-# phi = 0.25; #heritability
-# mi = 0.4; #strength of biotic selection
-# alfa = 0.2; #parameter for the trait matching
-# tmax = 100; #coevolutionary time step
-
-function coev_pool(adj_network,phi,alfa,tmax)
+function coev_pool(adj_network, THETA, phi,alfa,events)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
@@ -23,18 +16,15 @@ function coev_pool(adj_network,phi,alfa,tmax)
     b = hcat(adj_network', zero_pollinator);
     square_adj_network = vcat(a,b);
 
-    ##Enviromental Optima Regional Pool
-    THETA = rand(Uniform(0,1), n_S);
-
     #Initial trait value for each sp
     z_initial = rand(Uniform(0,1), n_S);
     z = copy(z_initial);
 
-    pool_z_matrix = zeros(tmax, n_S);
+    pool_z_matrix = zeros(events, n_S);
     pool_z_matrix[1,:] = z;
 
-    global Q = Array{Float64}(undef, 0);
-        for i = 1:(tmax-1)
+        global Q = Array{Float64}(undef, 0);
+        for i = 1:(events-1)
         z = pool_z_matrix[i,:];
         ## Calculating trait-matching
         global z_dif = (square_adj_network.*z)' -  square_adj_network.*z;
@@ -59,7 +49,5 @@ function coev_pool(adj_network,phi,alfa,tmax)
 
     return (
     pool_z_matrix,
-    THETA,
-    z_dif
     )
 end

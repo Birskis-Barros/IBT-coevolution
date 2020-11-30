@@ -1,4 +1,7 @@
-function coev_island(square_colonizer_network, new_z, alfa, new_M, new_PHI, new_theta)
+function coev_island(square_colonizer_network, new_z, alfa, mi, phi, new_theta)
+
+    new_M = repeat([mi],outer= size(square_colonizer_network)[1]); #+
+    new_PHI = repeat([phi], outer= size(square_colonizer_network)[1]); #+
 
     global new_Q = Array{Float64}(undef, 0);
 

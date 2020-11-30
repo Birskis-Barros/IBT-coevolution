@@ -1,4 +1,4 @@
-function initial_island(tmax, adj_network, z_result, start_plants)
+function initial_island(adj_network, start_plants, THETA, z_result)
 
 Splants = size(adj_network)[1]; #number of plants
 Spollinator = size(adj_network)[2]; #number of pollinator
@@ -43,29 +43,13 @@ square_first_island_network = vcat(a,b);
 
 ### Coevolutionary Dynamic for the Island with the initial species
 
-##Enviromental Optima
-#island_THETA = rand(Uniform(0,1), size(square_first_island_network)[1]); #already choosing theta for all species that can colonize the island, but considering a total new value for the island
-# global test_theta = 2
-#
-# while test_theta > 1
-#     global island_THETA = THETA .+ rand(Uniform(-0.1,0.1),length(THETA)); #considering values similar to the mainland, but with a noise of +- 0.2
-#     if findall(x->x>=1, island_THETA) != [] && findall(x->x<=0, island_THETA) != []
-#         global test_theta = 2
-#     else
-#         global test_theta = 0
-#     end
-# end
-
-global island_THETA =  copy(THETA)
+island_THETA =  copy(THETA) #for now we are keepig the same theta for both mainland and island
 
 ini_M = repeat([mi],outer= size(square_first_island_network)[1]);
 ini_PHI = repeat([phi], outer= size(square_first_island_network)[1]);
 
 #Initial trait value for each sp
 ini_z = copy(island_z_initial);
-
-#ini_pool_z_matrix = zeros(tmax, size(square_first_island_network)[1]);
-#ini_pool_z_matrix[1,:] = ini_z;
 
 global ini_Q = Array{Float64}(undef, 0);
 
@@ -92,7 +76,7 @@ global ini_Q = Array{Float64}(undef, 0);
     return(
     ini_sp_total,
     square_first_island_network,
-    island_THETA,
+    #island_THETA,
     z_final
     )
 

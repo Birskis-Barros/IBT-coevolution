@@ -3,13 +3,6 @@ function cascade_ext_sp(square_colonizer_network, pri_ext)
 #plants + pollinators
 n_species = size(square_colonizer_network)[1];
 
-# ##Creating a square matrix
-# plant = zeros(size(square_colonizer_network)[1], size(square_colonizer_network)[1]);
-# pollinator = zeros(size(square_colonizer_network)[2], size(square_colonizer_network)[2]);
-# a = hcat(plant, square_colonizer_network);
-# b = hcat(square_colonizer_network', pollinator);
-# square_my_network= vcat(a,b);
-
 global ext_species = Array{Array}(undef, n_species)
 global ext_species[1] = copy(pri_ext)
 
@@ -33,6 +26,6 @@ global ext_matrix[:, ext_species[1]] .= 0; #removing all the interactions of ext
 
 return(
 ext_species,
- ext_matrix
+ #ext_matrix
  )
 end

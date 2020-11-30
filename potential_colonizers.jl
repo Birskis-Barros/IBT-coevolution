@@ -1,4 +1,6 @@
-function potential_colonizers(adj_network, pollinators, plants, Splants)
+function potential_colonizers(adj_network, plants, pollinators)
+
+    Splants = size(adj_network)[1]; #number of plants
 
     spol = Array{Array}(undef, length(pollinators))
     for i=1:length(pollinators)
