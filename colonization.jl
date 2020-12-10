@@ -1,6 +1,9 @@
-function colonization(adj_network, plants, pollinators)
+function colonization(adj_network, total_island_species)
 
     Splants = size(adj_network)[1]; #number of plants
+
+    pollinators = total_island_species[total_island_species .> Splants] .- Splants;
+    plants = total_island_species[total_island_species .<= Splants];
 
     spol = Array{Array}(undef, length(pollinators))
     for i=1:length(pollinators)

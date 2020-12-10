@@ -30,7 +30,7 @@ end
 
 ##Grabbing the trait of those species in the equilibrium (mainland) #as primeiras especies são plantas
 p = Splants .+ start_pollinators;
-ini_sp_total = [start_plants; p];
+ini_sp_total = sort([start_plants; p]);
 island_z_initial = zeros(n_S);
 island_z_initial[ini_sp_total] = z_result[ini_sp_total,1];
 

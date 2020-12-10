@@ -1,4 +1,21 @@
-function coev_island(square_colonizer_network, new_z, alfa, mi, phi, new_theta)
+function coev_island(adj_network, total_island_species, new_z, alfa, mi, phi, new_theta);
+
+    Splants = size(adj_network)[1]; #number of plants
+    Spollinator = size(adj_network)[2]; #number of pollinator
+    n_S = Splants + Spollinator; #total number of species
+
+    pollinators = total_island_species[total_island_species .> Splants] .- Splants;
+    plants = total_island_species[total_island_species .<= Splants];
+
+    new_adj_network = zeros(Splants, Spollinator)
+    new_adj_network[plants, pollinators] = adj_network[plants, pollinators]
+
+    ##Creating a square matrix
+    zero_plant = zeros(Splants, Splants);
+    zero_pollinator = zeros(Spollinator, Spollinator);
+    a = hcat(zero_plant, new_adj_network);
+    b = hcat(new_adj_network', zero_pollinator);
+    square_colonizer_network = vcat(a,b); #square matrix = plants + pollinator
 
     new_M = repeat([mi],outer= size(square_colonizer_network)[1]); #+
     new_PHI = repeat([phi], outer= size(square_colonizer_network)[1]); #+

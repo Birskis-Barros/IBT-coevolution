@@ -14,7 +14,7 @@ function coev_pool(adj_network, THETA, phi,alfa,events)
     zero_pollinator = zeros(Spollinator, Spollinator);
     a = hcat(zero_plant, adj_network);
     b = hcat(adj_network', zero_pollinator);
-    square_adj_network = vcat(a,b);
+    square_adj_network = vcat(a,b); #square matrix = plants + pollinator 
 
     #Initial trait value for each sp
     z_initial = rand(Uniform(0,1), n_S);

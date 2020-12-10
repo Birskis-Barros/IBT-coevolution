@@ -1,4 +1,24 @@
-function first_ext(trait_mat, maximumprob, total_island_species, alfa, ext_size)
+function first_ext(adj_network, trait, maximumprob, total_island_species, alfa, ext_size)
+
+    Splants = size(adj_network)[1]; #number of plants
+    Spollinator = size(adj_network)[2]; #number of pollinator
+    n_S = Splants + Spollinator; #total number of species
+
+    pollinators = total_island_species[total_island_species .> Splants] .- Splants;
+    plants = total_island_species[total_island_species .<= Splants];
+
+    new_adj_network = zeros(Splants, Spollinator)
+    new_adj_network[plants, pollinators] = adj_network[plants, pollinators]
+
+    ##Creating a square matrix
+    zero_plant = zeros(Splants, Splants);
+    zero_pollinator = zeros(Spollinator, Spollinator);
+    a = hcat(zero_plant, new_adj_network);
+    b = hcat(new_adj_network', zero_pollinator);
+    square_colonizer_network = vcat(a,b); #square matrix = plants + pollinator
+
+
+    trait_mat = (square_colonizer_network.*trait)' -  square_colonizer_network.*trait; #here is an "a"!!!!!!!!!!!!!!!
 
 
     ## For when I am considering both type of extinctions -> baseline + mismatch. (Comment til line 16 when I am cosidering only baseline)
