@@ -1,6 +1,6 @@
 ####### The dynamic on the mainland ###########
 
-function coev_pool(adj_network, THETA, phi,alfa,events)
+function coev_pool(adj_network, phi,alfa,events)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
@@ -9,12 +9,14 @@ function coev_pool(adj_network, THETA, phi,alfa,events)
     M = repeat([mi],outer= n_S);
     PHI = repeat([phi], outer= n_S);
 
+    THETA = rand(Uniform(0,1), n_S);
+
     ##Creating a square matrix
     zero_plant = zeros(Splants, Splants);
     zero_pollinator = zeros(Spollinator, Spollinator);
     a = hcat(zero_plant, adj_network);
     b = hcat(adj_network', zero_pollinator);
-    square_adj_network = vcat(a,b); #square matrix = plants + pollinator 
+    square_adj_network = vcat(a,b); #square matrix = plants + pollinator
 
     #Initial trait value for each sp
     z_initial = rand(Uniform(0,1), n_S);

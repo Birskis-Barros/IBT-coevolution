@@ -1,4 +1,4 @@
-function cascade_ext_sp(adj_network, pri_ext)
+function cascade_ext_sp(adj_network, total_island_species, pri_ext)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
