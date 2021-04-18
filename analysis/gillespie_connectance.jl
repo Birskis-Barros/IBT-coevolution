@@ -1,12 +1,19 @@
 ####Incorporating Gillespie Algorithm for the colonization, coevolution, and extinction dynamics#####
 
-function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_size, col_rate, events)
+function gillespie_connectance(adj_network, phi, mi, alfa, n_start_plants, ext_size, col_rate, events)
 
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
     n_S = Splants + Spollinator; #total number of species
 
+    zero_plant = zeros(Splants, Splants);
+    zero_pollinator = zeros(Spollinator, Spollinator);
+    a = hcat(zero_plant, adj_network);
+    b = hcat(adj_network', zero_pollinator);
+    square_adj_network = vcat(a,b); #squar
+
+    connect = zeros(1, events)
 
      ##### The coevolutionary dynamic in the mainland
 
@@ -15,6 +22,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
       z_mainland = mainland[1];
       z_result = zeros(n_S, events); #keeping the traits values of coevolutionary dynamics +
       z_result[:,1] = z_mainland[events,:]; # The first colum is the trait value of species in the mainland +
+
+      connect[1,1] = sum(square_adj_network)/length(square_adj_network)
 
       ###### The Dynamic in the Island
 
@@ -30,6 +39,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
         #global island_THETA = copy(first_step[3]); #for when we considered different thetas for the mainland and the island
         z_result[ini_sp_total,2] = copy(first_step[3][ini_sp_total]); #result of the first coevolutinary step in the island
         global total_island_species = copy(ini_sp_total); #+
+
+        connect[1,2] = sum(square_adj_network[total_island_species,total_island_species])/length(square_adj_network[total_island_species,total_island_species])
 
 
       # 3) Gillespie Dynamic
@@ -69,6 +80,9 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
              z_result[:,currently_column+1] = copy(z_result[:,currently_column]);
              z_result[sp_colonizer,currently_column+1] = copy(z_newcolonizer);
 
+             connect[1,currently_column+1] = sum(square_adj_network[total_island_species,total_island_species])/length(square_adj_network[total_island_species,total_island_species]);
+
+
 
          elseif cpvec[1]< dice < cpvec[2] # coevolution event
 
@@ -83,6 +97,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
 
                 new_traits = coev_island(adj_network, total_island_species, new_z, alfa, mi, phi, new_theta);
                 z_result[total_island_species,currently_column+1] = new_traits[total_island_species]; #here is an "a"!!!!!!!!!!!!!!! +
+
+                connect[1,currently_column+1] = sum(square_adj_network[total_island_species,total_island_species])/length(square_adj_network[total_island_species,total_island_species]);
 
 
          else  cpvec[2]< dice < cpvec[3] # extinction event
@@ -119,14 +135,14 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
              end
 
              z_result[total_island_species,currently_column+1] = z_result[total_island_species,currently_column];
+             connect[1,currently_column+1] = sum(square_adj_network[total_island_species,total_island_species])/length(square_adj_network[total_island_species,total_island_species]);
+
          end
 
      end
 
 return(
-z_result
+z_result,
+connect
  )
 end
-
-##### Coisas ainda para resolver:
-# - o que fazer quando o número de especies na ilha for igual ao numero de especies no continente?
