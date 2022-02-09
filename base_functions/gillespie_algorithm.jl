@@ -11,7 +11,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
      ##### The coevolutionary dynamic in the mainland
 
       THETA = rand(Uniform(0,1), n_S);
-      mainland = coev_pool(adj_network, THETA, phi,alfa,events);
+      THETA = round.(THETA, digits=5);
+      mainland = coev_pool(adj_network, THETA, phi, mi, alfa,events);
       z_mainland = mainland[1];
       z_result = zeros(n_S, events); #keeping the traits values of coevolutionary dynamics +
       z_result[:,1] = z_mainland[events,:]; # The first colum is the trait value of species in the mainland +
@@ -78,7 +79,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
                 type_event[currently_column+1] = "coev"
 
                 new_theta = zeros(n_S); #+
-                new_theta[total_island_species] = THETA[total_island_species]; #grabbing the theta for the species that are in the island +
+                new_theta[total_island_species] = copy(THETA[total_island_species]); #grabbing the theta for the species that are in the island +
                 new_z = copy(z_result[:,currently_column]);
 
                 new_traits = coev_island(adj_network, total_island_species, new_z, alfa, mi, phi, new_theta);
@@ -96,7 +97,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
 
              trait = copy(z_result[:,currently_column]); #trait of currently species in the island
 
-             pri_ext = first_ext(adj_network, trait, maximumprob, total_island_species, alfa, ext_size); #primary extinction
+             pri_ext = baseline_ext(adj_network, trait, total_island_species, alfa, ext_size); #primary extinction
 
              ## Defining cascade extinctions
              total_ext_sp = Array{Array}(undef, 2);
@@ -122,6 +123,9 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
          end
 
      end
+
+     z_result = round.(z_result, digits=5)
+
 
 return(
 z_result

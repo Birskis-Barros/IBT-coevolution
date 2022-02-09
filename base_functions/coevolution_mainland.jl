@@ -1,6 +1,6 @@
 ####### The dynamic on the mainland ###########
 
-function coev_pool(adj_network, THETA, phi,alfa,events)
+function coev_pool(adj_network, THETA, phi, mi, alfa,events)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator

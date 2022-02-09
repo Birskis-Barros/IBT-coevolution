@@ -1,6 +1,6 @@
 ### Function of the total dynamic, including coevolution in the mainland, colonization, coevolution, and extinction.
 
-function assemblycoev(adj_network, phi, mi, alfa, events, ext_size, col_rate, maximumprob)
+function assemblycoev(adj_network, phi, mi, n_start_plants, alfa, events, ext_size, col_rate, maximumprob)
 
     global adj_network[adj_network.>1] .= 1; #changing to a 0 and 1 matrix
 
@@ -21,7 +21,7 @@ function assemblycoev(adj_network, phi, mi, alfa, events, ext_size, col_rate, ma
 
     # 1) First Colonization
 
-    global start_plants = sample(1:Splants,4, replace=false); # Randomly choosing 4 plant species to first colonize the island
+    global start_plants = sample(1:Splants,n_start_plants, replace=false); # Randomly choosing 4 plant species to first colonize the island
 
     # 2) First Coevolutionary Process
     first_step = initial_island(events, adj_network, z_result, start_plants); #Coevolutionary dynamic of the first 4 species who colonized the island
@@ -38,7 +38,7 @@ function assemblycoev(adj_network, phi, mi, alfa, events, ext_size, col_rate, ma
 
             ## First extinction = Due to trait matching or baseline
             trait_mat = (square_colonizer_network.*z_result[:,a])' -  square_colonizer_network.*z_result[:,a]; #here is an "a"!!!!!!!!!!!!!!!
-            pri_ext = first_ext(trait_mat, maximumprob, total_island_species, alfa, ext_size) #primary extinction
+            pri_ext = baseline_ext(trait_mat, maximumprob, total_island_species, alfa, ext_size) #primary extinction
 
             ## Defining cascade extinctions
             global total_ext_sp = Array{Array}(undef, 2);

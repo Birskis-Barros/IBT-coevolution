@@ -27,8 +27,6 @@ ext_size = 0.5; #baseline extinction rate
 col_rate = [0.1:0.1:1;]; ##colonization rate
 maximumprob = 0.10; ## maximum probability of extinction based on trait matching
 
-C = col_rate./ext_size;
-
 result = zeros(2000,4)
 result[:,1] = repeat([1,2,3,4,5,6,7,8,9,10], inner=200) #number of the networks: from 1 to 10
 result[:,2] = repeat(col_rate, inner=20, outer=10)
@@ -44,7 +42,7 @@ result[:,2] = repeat(col_rate, inner=20, outer=10)
             z_result = gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_size, col_rate, events);
             subset = copy(z_result[:,8000:events]) #taking just the last 2000 events
             subset[subset.>0] .= 1 #to focus on the presence of species in each event
-            richness = sum(subset, dims=1) #number of species in each event 
+            richness = sum(subset, dims=1) #number of species in each event
             result[l,3] = mean(richness)
             result[l,4] = std(richness)
         end

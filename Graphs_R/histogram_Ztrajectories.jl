@@ -7,7 +7,7 @@ initial_trait = trying[which(trying$V2==1),]
 
 ### Plants
 
-g7 = ggplot(final_traits, aes(x=V1)) +
+gen_p = ggplot(final_traits, aes(x=V1)) +
  geom_histogram(aes(y = stat(count / sum(count))), fill="#5BB300") +
  ylim(0,0.25) +
  geom_vline(initial_trait, xintercept = mean(initial_trait$V1), linetype="dotted") +
@@ -19,7 +19,7 @@ g7 = ggplot(final_traits, aes(x=V1)) +
 
 ### Pollinators
 
-g19 = ggplot(final_traits, aes(x=V1)) +
+sp_pol = ggplot(final_traits, aes(x=V1)) +
  geom_histogram(aes(y = stat(count / sum(count))), fill="#CF78FF") +
  ylim(0,0.25) +
  geom_vline(initial_trait, xintercept = mean(initial_trait$V1), linetype="dotted") +
@@ -41,3 +41,6 @@ ggsave("plant_pollinator.pdf", figure, path="/Users/irinabarros/Dropbox/PhD/IBT_
  ggsave("traj_sp19.pdf", g19, path="/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/gillespie_algorithm/new/trajectories/network8", width=20, height = 10)
 
 """
+figure <- ggarrange(spec_p,gen_p,sp_pol,gen_pol,
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, nrow =2 )
