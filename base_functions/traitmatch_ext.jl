@@ -1,4 +1,4 @@
-function traitmatch_ext(adj_network, trait, maximumprob, total_island_species, alfa, ext_size)
+function traitmatch_ext(adj_network, trait, total_island_species, alfa, ext_size)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
@@ -17,27 +17,33 @@ function traitmatch_ext(adj_network, trait, maximumprob, total_island_species, a
     b = hcat(new_adj_network', zero_pollinator);
     square_colonizer_network = vcat(a,b); #square matrix = plants + pollinator
 
-
+    #Calculating trait-matching among species on the island 
     trait_mat = (square_colonizer_network.*trait)' -  square_colonizer_network.*trait;
-    prob_ext = zeros(size(total_island_species)[1]) .+1;
-    pass_test1 = zeros(size(prob_ext)[1]);
 
-    ## Extinction due to baseline extinction rate related to island size
+    #Calculating the mean of trait-matching of each species (non-zero values of trait_mat network)
+           sums = zeros(n_S)
+           counts = zeros(n_S)
+           for c in 1:n_S
+               for r in 1:n_S
+                   v = abs.(trait_mat)[r,c]
+                   if v > 0
+                       sums[c] += v
+                       counts[c] += 1.0
+                   end
+               end
+           end
+        mean_sp_match =  Float64[(counts[i]>0 ? sums[i]/counts[i] : 0.0) for i in 1:n_S]
 
-    pass_test2 = zeros(size(prob_ext)[1]) .+1;
-    base_ext = repeat([ext_size], size(prob_ext)[1]);
-    roll_dice_2 = rand(Uniform(0,1),size(prob_ext)[1]);
-    pass_test2 = pass_test2 .* (roll_dice_2 .< base_ext);
+        mean_sp_mismatch = 1 .- mean_sp_match #trait mismatch of species
 
-    ## Among all possible species, just one will get extinct
-    final_pass_test = pass_test1 .+ pass_test2;
-    sp = final_pass_test .> 0;
+        ##Calculating the probability of extinction 
+        prob_ext_sp = zeros(n_S)
 
-    if findall(x->x>0,sp) == []
-        global pri_ext = 0;
-    else
-        global pri_ext = total_island_species[rand(findall(x->x>0,sp), 1)];
-    end
+        for u in 1:n_S
+            prob_ext_sp[u] = ext_size + (1 - (ext_size))/(1+exp(-(mean_sp_mismatch[u]-e)/k))
+        end    
+
+
 
     return(
     pri_ext
