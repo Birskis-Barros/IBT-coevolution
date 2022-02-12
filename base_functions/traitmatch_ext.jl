@@ -32,19 +32,23 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, ext_size
                    end
                end
            end
-        mean_sp_match =  Float64[(counts[i]>0 ? sums[i]/counts[i] : 0.0) for i in 1:n_S]
+        mean_sp_match =  Float64[(counts[i]>0 ? sums[i]/counts[i] : 0.0) for i in 1:n_S];
 
-        mean_sp_mismatch = 1 .- mean_sp_match #trait mismatch of species
+        mean_sp_mismatch = 1 .- mean_sp_match; #trait mismatch of species
 
         ##Calculating the probability of extinction 
-        prob_ext_sp = zeros(n_S)
+        prob_ext_sp = zeros(n_S);
 
         for u in 1:n_S
             prob_ext_sp[u] = ext_size + (1 - (ext_size))/(1+exp(-(mean_sp_mismatch[u]-e)/k))
         end    
 
-
-
+        #To chose which species will get extinct
+        vec_p_relativ = prob_ext_sp ./ sum(prob_ext_sp);
+        vec_p = cumsum(vec_p_relativ);
+        dice1 = rand();
+        pri_ext = Int64[findfirst(x->x==1, dice1 .< vec_p)];
+    
     return(
     pri_ext
     )
