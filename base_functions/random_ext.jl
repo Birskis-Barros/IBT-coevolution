@@ -1,4 +1,4 @@
-function baseline_ext(adj_network, trait, total_island_species, alfa, ext_size)
+function random_ext(adj_network, trait, total_island_species, alfa, ext_rate)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
