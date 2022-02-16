@@ -17,8 +17,21 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, ext_size
     b = hcat(new_adj_network', zero_pollinator);
     square_colonizer_network = vcat(a,b); #square matrix = plants + pollinator
 
+    #Finding where the interactions are
+    sp_int_position = Vector{Vector{Int64}}(undef, n_S)
+    for a in 1:n_S
+        sp_int_position[a] = findall(x->x==1,square_colonizer_network[a,:]);
+    end
+
     #Calculating trait-matching among species on the island 
     trait_mat = (square_colonizer_network.*trait)' -  square_colonizer_network.*trait;
+    sp_mean_traitmatch = Vector{Float64}(undef, n_S)
+    for b in 1:n_S
+     sp_mean_traitmatch[b] =  mean(abs.(trait_mat[b,sp_int_position[b]]))
+    end
+
+    
+
 
     #Calculating the mean of trait-matching of each species (non-zero values of trait_mat network)
            sums = zeros(n_S)
@@ -33,7 +46,6 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, ext_size
                end
            end
         mean_sp_match =  Float64[(counts[i]>0 ? sums[i]/counts[i] : 0.0) for i in 1:n_S];
-
         mean_sp_mismatch = 1 .- mean_sp_match; #trait mismatch of species
 
         ##Calculating the probability of extinction 
