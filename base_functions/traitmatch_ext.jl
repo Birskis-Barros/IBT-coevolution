@@ -1,4 +1,4 @@
-function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext)
+function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
@@ -37,9 +37,11 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline
     ##Calculating the probability of extinction 
     prob_ext_sp = zeros(n_S);
 
+        #para_x define where in the x axis "the curve begin" and k define how fast the curve saturates (see file "curve_trait_ext_nb")
         for u in 1:n_S
-            prob_ext_sp[u] = baseline_ext + (1 - (baseline_ext))/(1+exp(-(mean_sp_mismatch[u]-e)/k))
+            prob_ext_sp[u] = baseline_ext + (1 - (baseline_ext))/(1+exp(-(mean_sp_mismatch[u]-para_x)/k))
         end    
+    
 
         #To chose which species will get extinct
         vec_p_relativ = prob_ext_sp[which_sp_interact] ./ sum(prob_ext_sp[which_sp_interact]);

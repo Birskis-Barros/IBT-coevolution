@@ -1,6 +1,6 @@
 ####Incorporating Gillespie Algorithm for the colonization, coevolution, and extinction dynamics#####
 
-function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_size, col_rate, events)
+function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baseline_ext, ext_rate, col_rate, events)
 
 
     Splants = size(adj_network)[1]; #number of plants
@@ -44,12 +44,12 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
 
           N_p[t] = potential_colonizers(adj_network, total_island_species); #number of potential colonizers
           N_i[t] = length(total_island_species); #number of species in the island
-          N_total = (col_rate*N_p[t]) + (ext_size*N_i[t]) + N_i[t]; #total number
+          N_total = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + N_i[t]; #total number
           d_total[t] = copy(1/N_total);
 
           c_event = (col_rate*N_p[t])/N_total; #propability for having colonization
           coev_event = N_i[t]/N_total; #propability for having coevolution
-          ext_event = (ext_size*N_i[t])/N_total; #propability for having extinction
+          ext_event = (ext_rate*N_i[t])/N_total; #propability for having extinction
           pvec = [c_event, coev_event, ext_event];
           cpvec = cumsum(pvec);
           dice = rand();
@@ -97,7 +97,11 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_siz
 
              trait = copy(z_result[:,currently_column]); #trait of currently species in the island
 
-             pri_ext = baseline_ext(adj_network, trait, total_island_species, alfa, ext_size); #primary extinction
+             #For random extinctions 
+             #pri_ext = baseline_ext(adj_network, trait, total_island_species, alfa, ext_rate); #primary extinction
+
+             #For extinctions based on trait-matching
+            pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
 
              ## Defining cascade extinctions
              total_ext_sp = Array{Array}(undef, 2);
