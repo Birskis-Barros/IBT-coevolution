@@ -1,6 +1,6 @@
 ####Incorporating Gillespie Algorithm for the colonization, coevolution, and extinction dynamics#####
 
-function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baseline_ext, ext_rate, col_rate, events)
+function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baseline_ext, ext_rate, col_rate, coev_rate, events)
 
 
     Splants = size(adj_network)[1]; #number of plants
@@ -44,11 +44,11 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
           N_p[t] = potential_colonizers(adj_network, total_island_species); #number of potential colonizers
           N_i[t] = length(total_island_species); #number of species in the island
-          N_total = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + N_i[t]; #total number
+          N_total = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + (coev_rate*N_i[t]); #total number
           d_total[t] = copy(1/N_total);
 
           c_event = (col_rate*N_p[t])/N_total; #propability for having colonization
-          coev_event = N_i[t]/N_total; #propability for having coevolution
+          coev_event = (coev_rate*N_i[t])/N_total; #propability for having coevolution
           ext_event = (ext_rate*N_i[t])/N_total; #propability for having extinction
           pvec = [c_event, coev_event, ext_event];
           cpvec = cumsum(pvec);
