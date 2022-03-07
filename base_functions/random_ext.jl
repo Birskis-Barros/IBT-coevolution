@@ -1,4 +1,4 @@
-function random_ext(adj_network, trait, total_island_species, alfa, ext_rate)
+function random_ext(adj_network, trait, total_island_species, alfa, baseline_ext)
 
     Splants = size(adj_network)[1]; #number of plants
     Spollinator = size(adj_network)[2]; #number of pollinator
@@ -25,7 +25,7 @@ function random_ext(adj_network, trait, total_island_species, alfa, ext_rate)
     ## Extinction due to baseline extinction rate related to island size
 
     pass_test2 = zeros(size(prob_ext)[1]) .+1;
-    base_ext = repeat([ext_size], size(prob_ext)[1]);
+    base_ext = repeat([baseline_ext], size(prob_ext)[1]);
     roll_dice_2 = rand(Uniform(0,1),size(prob_ext)[1]);
     pass_test2 = pass_test2 .* (roll_dice_2 .< base_ext);
 
