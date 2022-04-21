@@ -49,6 +49,7 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline
         dice1 = rand();
         pick_vec_p = Int64[findfirst(x->x==1, dice1 .< vec_p)];
         pri_ext = which_sp_interact[pick_vec_p]
+
     
     return(
     pri_ext

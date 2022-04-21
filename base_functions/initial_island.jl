@@ -7,14 +7,13 @@ n_S = Splants + Spollinator;
 ## Randomly choosing 2 pollinators to first colonize the island, one for each plant.
 global test_pollinators = 2
 
+#Attetion! Need to review in case start_plants > 1
 while test_pollinators > 1
     global start_pollinators = Array{Array}(undef, size(start_plants)[1])
     for i=1:length(start_plants)
      start_pollinators[i] = sample(findall(x->x>0, adj_network[start_plants[i],:]),1);
     end
-    if length(unique(start_pollinators)) <  length(start_plants)
-        global test_pollinators = 2
-    else
+    if length(unique(start_pollinators)) ==  length(start_plants)
         global test_pollinators = 0
     end
 end

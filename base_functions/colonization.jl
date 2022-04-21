@@ -32,6 +32,7 @@ function colonization(adj_network, total_island_species)
 
     species_colonizer = sample([sp_ab;sp_cd],1)[1]; # choosing one sp from all the possible new colonizers
 
+
     return(
     species_colonizer
     )

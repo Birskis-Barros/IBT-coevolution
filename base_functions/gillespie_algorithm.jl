@@ -42,36 +42,39 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
      for t=3:(events) #because the first 2 columns in z_result is already filled (1st - z in the mainland, 2nd - z of the first 8 species)
 
-          N_p[t] = potential_colonizers(adj_network, total_island_species); #number of potential colonizers
-          N_i[t] = length(total_island_species); #number of species in the island
-          N_total = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + (coev_rate*N_i[t]); #total number
-          d_total[t] = copy(1/N_total);
+        if total_island_species == 0 || potential_colonizers(adj_network, total_island_species) == 0
+            break
+        else
+            N_p[t] = potential_colonizers(adj_network, total_island_species); #number of potential colonizers
+            N_i[t] = length(total_island_species); #number of species in the island
+            R = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + (coev_rate*N_i[t]); #total number
+            d_total[t] = copy(1/R);
 
-          c_event = (col_rate*N_p[t])/N_total; #propability for having colonization
-          coev_event = (coev_rate*N_i[t])/N_total; #propability for having coevolution
-          ext_event = (ext_rate*N_i[t])/N_total; #propability for having extinction
-          pvec = [c_event, coev_event, ext_event];
-          cpvec = cumsum(pvec);
-          dice = rand();
+            c_event = (col_rate*N_p[t])/R; #propability for having colonization
+            coev_event = (coev_rate*N_i[t])/R; #propability for having coevolution
+            ext_event = (ext_rate*N_i[t])/R; #propability for having extinction
+            pvec = [c_event, coev_event, ext_event];
+            cpvec = cumsum(pvec);
+            dice = rand();
 
-         if dice < cpvec[1] ###colonization ###
+            if dice < cpvec[1] ###colonization ###
 
-             finding_column = findall(x->x>0, sum(z_result, dims=1));
-             currently_column = length(finding_column)[1];
+                finding_column = findall(x->x>0, sum(z_result, dims=1));
+                currently_column = length(finding_column)[1];
 
-             type_event[currently_column+1] = "col"
+                type_event[currently_column+1] = "col"
 
-             sp_colonizer = colonization(adj_network, total_island_species) # choosing one sp from all the possible new colonizers +
-             global total_island_species = sort([total_island_species;sp_colonizer])
+                sp_colonizer = colonization(adj_network, total_island_species) # choosing one sp from all the possible new colonizers +
+                global total_island_species = sort([total_island_species;sp_colonizer])
 
-             z_newcolonizer = z_result[sp_colonizer,1]; #grabbing the z of the new colonizer (from mainland)
+                z_newcolonizer = z_result[sp_colonizer,1]; #grabbing the z of the new colonizer (from mainland)
 
-             #defining z for the first time step + z of the new colonizer
-             z_result[:,currently_column+1] = copy(z_result[:,currently_column]);
-             z_result[sp_colonizer,currently_column+1] = copy(z_newcolonizer);
+                #defining z for the first time step + z of the new colonizer
+                z_result[:,currently_column+1] = copy(z_result[:,currently_column]);
+                z_result[sp_colonizer,currently_column+1] = copy(z_newcolonizer);
 
 
-         elseif cpvec[1]< dice < cpvec[2] # coevolution event
+             elseif cpvec[1]< dice < cpvec[2] # coevolution event
 
                 finding_column = findall(x->x>0, sum(z_result, dims=1));
                 currently_column = length(finding_column)[1];
@@ -86,55 +89,55 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 z_result[total_island_species,currently_column+1] = new_traits[total_island_species]; #here is an "a"!!!!!!!!!!!!!!! +
 
 
-         else  cpvec[2]< dice < cpvec[3] # extinction event
+            else  cpvec[2]< dice < cpvec[3] # extinction event
 
 
-             ## First extinction = Due to trait matching or baseline
-             finding_column = findall(x->x>0, sum(z_result, dims=1));
-             currently_column = length(finding_column)[1];
+                ## First extinction = Due to trait matching or baseline
+                finding_column = findall(x->x>0, sum(z_result, dims=1));
+                currently_column = length(finding_column)[1];
 
-              type_event[currently_column+1] = "ext"
+                type_event[currently_column+1] = "ext"
 
-             trait = copy(z_result[:,currently_column]); #trait of currently species in the island
+                trait = copy(z_result[:,currently_column]); #trait of currently species in the island
 
-             #For random extinctions 
-             pri_ext = random_ext(adj_network, trait, total_island_species, alfa, baseline_ext); #primary extinction
+                #For random extinctions 
+                #pri_ext = random_ext(adj_network, trait, total_island_species, alfa, baseline_ext); #primary extinction
 
-             #For extinctions based on trait-matching
-            #pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
+                #For extinctions based on trait-matching
+                pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
 
-             ## Defining cascade extinctions
-             total_ext_sp = Array{Array}(undef, 2);
+                ## Defining cascade extinctions
+                total_ext_sp = Array{Array}(undef, 2);
 
-             if pri_ext == 0
-                 total_ext_sp[1] = [0];
-             else
-             total_ext_sp = cascade_ext_sp(adj_network, total_island_species, pri_ext); #[1] lista de sp extintas em cada time step; [2] matrix com as sp que sobraram (linhas e colunas zeradas das esp extintas)
+                if pri_ext == 0
+                    total_ext_sp[1] = [0];
+                else
+                total_ext_sp = cascade_ext_sp(adj_network, total_island_species, pri_ext); #[1] lista de sp extintas em cada time step; [2] matrix com as sp que sobraram (linhas e colunas zeradas das esp extintas)
+                end
+
+                sep = zeros(length(total_ext_sp[1]));
+                for i=1:length(total_ext_sp[1])
+                    sep[i] = isassigned(total_ext_sp[1],i)
+                end
+
+                global total_island_species = setdiff(total_island_species, total_ext_sp[1][last(findall(x->x==1, sep))]);
+
+                if total_island_species == []
+                    break
+                end
+
+                z_result[total_island_species,currently_column+1] = z_result[total_island_species,currently_column];
              end
-
-             sep = zeros(length(total_ext_sp[1]));
-             for i=1:length(total_ext_sp[1])
-                 sep[i] = isassigned(total_ext_sp[1],i)
-             end
-
-             global total_island_species = setdiff(total_island_species, total_ext_sp[1][last(findall(x->x==1, sep))]);
-
-             if total_island_species == []
-                 break
-             end
-
-             z_result[total_island_species,currently_column+1] = z_result[total_island_species,currently_column];
-         end
-
+        end
      end
 
      z_result = round.(z_result, digits=5)
+     d_total = cumsum(d_total)
 
 
 return(
-z_result
+z_result, 
+d_total
  )
 end
 
-##### Coisas ainda para resolver:
-# - o que fazer quando o número de especies na ilha for igual ao numero de especies no continente?

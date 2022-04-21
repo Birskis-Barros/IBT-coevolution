@@ -13,12 +13,12 @@ function gillespie_connectance(adj_network, phi, mi, alfa, n_start_plants, ext_s
     b = hcat(adj_network', zero_pollinator);
     square_adj_network = vcat(a,b); #squar
 
-    connect = zeros(1, events)
+    connect = zeros(1, events);
 
      ##### The coevolutionary dynamic in the mainland
 
       THETA = rand(Uniform(0,1), n_S);
-      mainland = coev_pool(adj_network, THETA, phi,alfa,events);
+      mainland = coev_pool(adj_network, THETA, phi, mi, alfa,events);
       z_mainland = mainland[1];
       z_result = zeros(n_S, events); #keeping the traits values of coevolutionary dynamics +
       z_result[:,1] = z_mainland[events,:]; # The first colum is the trait value of species in the mainland +
