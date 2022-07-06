@@ -7,6 +7,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
     Spollinator = size(adj_network)[2]; #number of pollinator
     n_S = Splants + Spollinator; #total number of species
 
+    #extinction_dataframe = zeros(n_S, events) #for analyzing type extinction vs degree
 
      ##### The coevolutionary dynamic in the mainland
 
@@ -112,7 +113,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 if pri_ext == 0
                     total_ext_sp[1] = [0];
                 else
-                total_ext_sp = cascade_ext_sp(adj_network, total_island_species, pri_ext); #[1] lista de sp extintas em cada time step; [2] matrix com as sp que sobraram (linhas e colunas zeradas das esp extintas)
+                    total_ext_sp = cascade_ext_sp(adj_network, total_island_species, pri_ext); #[1] lista de sp extintas em cada time step; [2] matrix com as sp que sobraram (linhas e colunas zeradas das esp extintas)
                 end
 
                 sep = zeros(length(total_ext_sp[1]));
@@ -121,6 +122,13 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 end
 
                 global total_island_species = setdiff(total_island_species, total_ext_sp[1][last(findall(x->x==1, sep))]);
+
+                #for analyzing type extinction vs degree
+                #for u=1:length(total_ext_sp[1][last(findall(x->x==1, sep))])
+                #    extinction_dataframe[total_ext_sp[1][last(findall(x->x==1, sep))][u], currently_column+1] = 2
+                #end    
+                #extinction_dataframe[pri_ext[1],currently_column+1] = 1
+                ####
 
                 if total_island_species == []
                     break
@@ -137,7 +145,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
 return(
 z_result, 
-d_total
+d_total, 
+#extinction_dataframe, #for analyzing type extinction vs degree
  )
 end
 

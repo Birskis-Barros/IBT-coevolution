@@ -32,14 +32,12 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline
 
     which_sp_interact = findall(!isnan,sp_mean_traitmatch); #species that have interactions
 
-    mean_sp_mismatch = 1 .- sp_mean_traitmatch; #trait mismatch of species
-
     ##Calculating the probability of extinction 
     prob_ext_sp = zeros(n_S);
 
         #para_x define where in the x axis "the curve begin" and k define how fast the curve saturates (see file "curve_trait_ext_nb")
         for u in 1:n_S
-            prob_ext_sp[u] = baseline_ext + (1 - (baseline_ext))/(1+exp(-(mean_sp_mismatch[u]-para_x)/k))
+            prob_ext_sp[u] = baseline_ext + (1 - (baseline_ext))/(1+exp(-(sp_mean_traitmatch[u]-para_x)/k))
         end    
     
 
