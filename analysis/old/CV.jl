@@ -8,7 +8,7 @@ using RCall
 using DataFrames
 using JLD2
 
-loadfunc = include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/base_functions/loadfuncs.jl") #start everytime with this 
+loadfunc = include("$(homedir())/Dropbox/PhD/IBT_Coevolution/Codes/IBT-Coevolution/base_functions/loadfuncs.jl") #start everytime with this
 
 phi = 0.1; #heritability
 mi = 0.4; #strength of biotic selection
@@ -27,8 +27,8 @@ result[:,2] = repeat(col_rate, outer=55);
             #### Empirical Network
             m = Int64(result[l,1])
             filename = string("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Data/pollination/network_",m,".csv");
-            adj_network = CSV.read(filename, header=false);
-            adj_network = convert(Array,adj_network);
+            adj_network = CSV.read(filename,header=false,DataFrame);
+            adj_network = Array(adj_network);
             adj_network[adj_network.>1] .= 1; #changing to a 0 and 1 matrix
             col_rate = result[l,2]
             z_final = gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baseline_ext, ext_rate, col_rate, coev_rate, events);

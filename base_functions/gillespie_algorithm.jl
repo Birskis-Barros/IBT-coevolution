@@ -102,10 +102,10 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 trait = copy(z_result[:,currently_column]); #trait of currently species in the island
 
                 #For random extinctions 
-                pri_ext = random_ext(adj_network, trait, total_island_species, alfa, baseline_ext); #primary extinction
+                #pri_ext = random_ext(adj_network, trait, total_island_species, alfa, baseline_ext); #primary extinction
 
                 #For extinctions based on trait-matching
-                #pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
+                pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
 
                 ## Defining cascade extinctions
                 total_ext_sp = Array{Array}(undef, 2);
