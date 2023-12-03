@@ -7,6 +7,7 @@ R"""
      library(ggplot2)
      library(tidyr)
      library("ggpubr")
+     library(ggside)
 """
 
 phi = 0.1; #heritability
@@ -79,7 +80,7 @@ R"""
                     axis.title=element_text(size=20)) +
     theme(legend.title = element_text(size = 18),
                     legend.text = element_text(size = 14)) +
-                    theme(legend.title = element_blank()) 
+                    theme(legend.title = element_blank())
 
     ggsave("richness_island2.pdf", path="/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/with_profit_function/")
 
@@ -97,3 +98,18 @@ R"""
 
       ggsave("richness_net1_12.pdf", figure, path="/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Graphs/with_profit_function/"),
       width=30, height = 10)
+
+
+      ggplot(net12, aes(x=events, y=value, color=network)) +
+      geom_line() +
+      ylim(0,1) +
+      theme_classic() +
+      xlab("Events") +
+      ylab("Richness") +
+      #labs(color="Network") +
+      theme(axis.text=element_text(size=20),
+                     axis.title=element_text(size=20)) +
+      theme(legend.title = element_text(size = 18),
+                     legend.text = element_text(size = 14)) +
+                     theme(legend.title = element_blank())  +
+    geom_ysidedensity(aes(x=after_stat(density)), position="stack")

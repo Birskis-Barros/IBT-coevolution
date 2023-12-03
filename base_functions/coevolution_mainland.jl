@@ -18,6 +18,7 @@ function coev_pool(adj_network, THETA, phi, mi, alfa,events)
 
     #Initial trait value for each sp
     z_initial = rand(Uniform(0,1), n_S);
+    z_initial = round.(z_initial, digits=5);
     z = copy(z_initial);
 
     pool_z_matrix = zeros(events, n_S);
@@ -47,7 +48,7 @@ function coev_pool(adj_network, THETA, phi, mi, alfa,events)
         pool_z_matrix[i+1,:] = z + PHI.*(mut + env);
         end
 
-        
+
     return (
     pool_z_matrix,
     )

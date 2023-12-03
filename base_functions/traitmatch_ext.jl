@@ -1,3 +1,5 @@
+#### This function was replaced by "fitness_ext"
+
 function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
 
     Splants = size(adj_network)[1]; #number of plants
@@ -31,7 +33,8 @@ function traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline
     end
 
     #Calculating trait-mismatch
-    sp_mean_mismatch = 1 .-  sp_mean_traitmatch
+    #sp_mean_mismatch = 1 .-  sp_mean_traitmatch
+    sp_mean_mismatch = copy(sp_mean_traitmatch)
 
     which_sp_interact = findall(!isnan,sp_mean_mismatch); #species that have interactions
 

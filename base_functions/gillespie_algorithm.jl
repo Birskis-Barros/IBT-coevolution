@@ -1,6 +1,6 @@
 ####Incorporating Gillespie Algorithm for the colonization, coevolution, and extinction dynamics#####
 
-function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baseline_ext, ext_rate, col_rate, coev_rate, events)
+function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_rate, col_rate, coev_rate, events)
 
 
     Splants = size(adj_network)[1]; #number of plants
@@ -43,9 +43,9 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
      for t=3:(events) #because the first 2 columns in z_result is already filled (1st - z in the mainland, 2nd - z of the first 8 species)
 
-        if total_island_species == 0 || potential_colonizers(adj_network, total_island_species) == 0
-            break
-        else
+        #if total_island_species == 0 || potential_colonizers(adj_network, total_island_species) == 0
+        #    break
+        #else
             N_p[t] = potential_colonizers(adj_network, total_island_species); #number of potential colonizers
             N_i[t] = length(total_island_species); #number of species in the island
             R = (col_rate*N_p[t]) + (ext_rate*N_i[t]) + (coev_rate*N_i[t]); #total number
@@ -82,7 +82,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
                 type_event[currently_column+1] = "coev"
 
-                new_theta = zeros(n_S); 
+                new_theta = zeros(n_S);
                 new_theta[total_island_species] = copy(THETA[total_island_species]); #grabbing the theta for the species that are in the island +
                 new_z = copy(z_result[:,currently_column]);
 
@@ -101,11 +101,11 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
                 trait = copy(z_result[:,currently_column]); #trait of currently species in the island
 
-                #For random extinctions 
+                #For random extinctions
                 #pri_ext = random_ext(adj_network, trait, total_island_species, alfa, baseline_ext); #primary extinction
 
-                #For extinctions based on trait-matching
-                pri_ext = traitmatch_ext(adj_network, trait, total_island_species, alfa, baseline_ext, para_x, k)
+                #For extinctions based on profitability
+                pri_ext = profitability_ext(adj_network, trait, total_island_species, a_fit, b_fit, g_fit, threshold, StDevProfit)
 
                 ## Defining cascade extinctions
                 total_ext_sp = Array{Array}(undef, 2);
@@ -126,7 +126,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 #for analyzing type extinction vs degree
                 #for u=1:length(total_ext_sp[1][last(findall(x->x==1, sep))])
                 #    extinction_dataframe[total_ext_sp[1][last(findall(x->x==1, sep))][u], currently_column+1] = 2
-                #end    
+                #end
                 #extinction_dataframe[pri_ext[1],currently_column+1] = 1
                 ####
 
@@ -135,7 +135,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
                 end
 
                 z_result[total_island_species,currently_column+1] = z_result[total_island_species,currently_column];
-             end
+             #end
         end
      end
 
@@ -144,9 +144,8 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, baselin
 
 
 return(
-z_result, 
-d_total, 
+z_result,
+d_total,
 #extinction_dataframe, #for analyzing type extinction vs degree
  )
 end
-
