@@ -27,7 +27,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_rat
       # 2) First Coevolutionary Process
       first_step = initial_island(adj_network, start_plants, THETA, z_result); #Coevolutionary dynamic of the first 4 species who colonized the island
 
-        ini_sp_total = copy(first_step[1]); #8 first species to colonize the island (order: plants+pollinators)
+        ini_sp_total = copy(first_step[1]); # first species to colonize the island (order: plants+pollinators)
         square_colonizer_network = copy(first_step[2]); #new network in the island +
         #global island_THETA = copy(first_step[3]); #for when we considered different thetas for the mainland and the island
         z_result[ini_sp_total,2] = copy(first_step[3][ini_sp_total]); #result of the first coevolutinary step in the island
@@ -65,7 +65,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_rat
 
                 type_event[currently_column+1] = "col"
 
-                sp_colonizer = colonization(adj_network, total_island_species) # choosing one sp from all the possible new colonizers +
+                sp_colonizer = colonization(adj_network, total_island_species); # choosing one sp from all the possible new colonizers +
                 global total_island_species = sort([total_island_species;sp_colonizer])
 
                 z_newcolonizer = z_result[sp_colonizer,1]; #grabbing the z of the new colonizer (from mainland)

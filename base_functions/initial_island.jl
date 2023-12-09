@@ -42,7 +42,7 @@ square_first_island_network = vcat(a,b);
 
 ### Coevolutionary Dynamic for the Island with the initial species
 
-island_THETA =  copy(THETA) #for now we are keepig the same theta for both mainland and island
+island_THETA =  copy(THETA); #for now we are keepig the same theta for both mainland and island
 
 ini_M = repeat([mi],outer= size(square_first_island_network)[1]);
 ini_PHI = repeat([phi], outer= size(square_first_island_network)[1]);
