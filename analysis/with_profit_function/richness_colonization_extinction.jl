@@ -15,7 +15,7 @@ mi = 0.4; #strength of biotic selection
 alfa = 0.2; #parameter that controls the sensitivity of the evolutionary effect to trait matching
 events = 5000; #total number of events
 n_start_plants = 1 #initial number of plants in the island (it will be the same number of polinators)
-ext_rate = 0.45; # extinction rate (related to the size of the island)
+ext_rate = 0.7; # extinction rate (related to the size of the island)
 col_rate = 1; ##colonization rate
 coev_rate = 1 #coevolutionary rate
 
@@ -38,7 +38,12 @@ richness = zeros(numb_net,events);
   for l=1:numb_net #from network 1 to numb_net
 
       m = l
-      filename = string("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Data/pollination/network_",m,".csv");
+      if homedir() == "/Users/irinabarros"
+          filename = string("/Users/irinabarros/Dropbox/PhD/IBT_Coevolution/Data/pollination/network_",m,".csv");
+      elseif homedir() == "/home/irinabarros"
+          filename = string("$(homedir())/IBT_coev/Data_Pollination/pollination/network_",m,".csv");
+      end
+
       adj_network = CSV.read(filename,header=false,DataFrame);
       adj_network = Array(adj_network);
       adj_network[adj_network.>1] .= 1; #changing to a 0 and 1 matrix

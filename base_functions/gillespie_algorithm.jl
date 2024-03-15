@@ -66,7 +66,7 @@ function gillespie_algorithm(adj_network, phi, mi, alfa, n_start_plants, ext_rat
                 type_event[currently_column+1] = "col"
 
                 sp_colonizer = colonization(adj_network, total_island_species); # choosing one sp from all the possible new colonizers +
-                global total_island_species = sort([total_island_species;sp_colonizer])
+                global total_island_species = sort([total_island_species;sp_colonizer]);
 
                 z_newcolonizer = z_result[sp_colonizer,1]; #grabbing the z of the new colonizer (from mainland)
 
